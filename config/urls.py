@@ -52,5 +52,10 @@ urlpatterns = [
     path('lotes/', include('apps.lote.urls', namespace='lote')),
 ]
 
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+from django.views.static import serve
+from django.urls import re_path
+
+# Servir archivos media en desarrollo y producción
+urlpatterns += [
+    re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
+]
