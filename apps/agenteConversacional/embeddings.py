@@ -1,6 +1,5 @@
 import logging
 from django.conf import settings
-from sentence_transformers import SentenceTransformer
 from apps.productoEspecificacion.models import ProductoEspecificacion
 
 logger = logging.getLogger(__name__)
@@ -26,7 +25,8 @@ class EmbeddingsGenerator:
             with self._lock:
                 if self._model is None:
                     logger.info("Cargando modelo SentenceTransformer all-MiniLM-L6-v2...")
-                    # Carga el modelo sentence-transformer
+                    # Carga el modelo de forma perezosa para evitar imports pesados en el arranque
+                    from sentence_transformers import SentenceTransformer
                     self._model = SentenceTransformer('all-MiniLM-L6-v2')
                     logger.info("Modelo SentenceTransformer cargado correctamente.")
         return self._model
