@@ -17,7 +17,7 @@ def crear_datos(sender, **kwargs):
         rol_vendedor = Rol.objects.create(nombre="Vendedor")
 
     usuario_admin = Usuario.objects.filter(
-        usuario=config('ADMIN_USUARIO')
+        usuario=config('ADMIN_USUARIO', default='admin')
     ).first()
 
     if not usuario_admin:
@@ -28,14 +28,14 @@ def crear_datos(sender, **kwargs):
             telefono="77777777",
             direccion="La Paz",
             ci="12345678",
-            usuario=config('ADMIN_USUARIO'),
-            password=make_password(config('ADMIN_PASSWORD')),
+            usuario=config('ADMIN_USUARIO', default='admin'),
+            password=make_password(config('ADMIN_PASSWORD', default='123456')),
             rol=rol_admin,
             estado=True
         )
         print("Administrador creado")
     else:
-        if not check_password(config('ADMIN_PASSWORD'), usuario_admin.password):
-            usuario_admin.password = make_password(config('ADMIN_PASSWORD'))
+        if not check_password(config('ADMIN_PASSWORD', default='123456'), usuario_admin.password):
+            usuario_admin.password = make_password(config('ADMIN_PASSWORD', default='123456'))
             usuario_admin.save()
             print("Contraseña del administrador actualizada")
