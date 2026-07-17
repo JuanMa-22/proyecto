@@ -6,6 +6,12 @@ set -e
 echo "=== Ejecutando Migraciones ==="
 python manage.py migrate --noinput
 
+if [ "$LOAD_DATA" = "True" ] || [ "$LOAD_DATA" = "true" ]; then
+  echo "=== Cargando datos desde db.json ==="
+  # Excluimos contenttypes y auth.Permission para prevenir colisiones en Django 5+
+  python manage.py loaddata db.json --exclude contenttypes --exclude auth.Permission || echo "Advertencia: Algunos datos no pudieron ser cargados o ya existen."
+fi
+
 echo "=== Recopilando Archivos Estáticos ==="
 python manage.py collectstatic --noinput
 
