@@ -17,8 +17,8 @@ from groq import Groq
 logger = logging.getLogger(__name__)
 
 # Configuración del modelo LLM Groq
-MODELO_LLM = getattr(settings, 'AGENTE_LLM_MODEL', 'llama-3.3-70b-versatile')
-MODELO_FALLBACK = getattr(settings, 'AGENTE_LLM_FALLBACK_MODEL', 'llama-3.1-8b-instant')
+MODELO_LLM = getattr(settings, 'AGENTE_LLM_MODEL', 'meta-llama/llama-4-scout-17b-16e-instruct')
+MODELO_FALLBACK = getattr(settings, 'AGENTE_LLM_FALLBACK_MODEL', 'qwen/qwen3-32b')
 
 def obtener_cliente_groq():
     api_key = getattr(settings, 'GROQ_API_KEY', None) or os.environ.get("GROQ_API_KEY")
