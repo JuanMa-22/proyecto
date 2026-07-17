@@ -21,9 +21,10 @@ class EmbeddingsGenerator:
     @property
     def model(self):
         """Carga perezosa del modelo con sincronización de hilos para evitar inicializaciones concurrentes."""
-        # Evitar cargar el modelo local en producción para no exceder los 512MB de RAM de Render
-        if not settings.DEBUG:
-            raise RuntimeError("El modelo local de SentenceTransformer está desactivado en producción para ahorrar RAM.")
+        import os
+        # Evitar cargar el modelo local en Render para no exceder los 512MB de RAM
+        if os.environ.get('RENDER') == 'true' or not settings.DEBUG:
+            raise RuntimeError("El modelo local de SentenceTransformer está desactivado en Render para ahorrar RAM.")
 
         if self._model is None:
             with self._lock:
