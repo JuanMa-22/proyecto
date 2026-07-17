@@ -21,6 +21,10 @@ class EmbeddingsGenerator:
     @property
     def model(self):
         """Carga perezosa del modelo con sincronización de hilos para evitar inicializaciones concurrentes."""
+        # Evitar cargar el modelo local en producción para no exceder los 512MB de RAM de Render
+        if not settings.DEBUG:
+            raise RuntimeError("El modelo local de SentenceTransformer está desactivado en producción para ahorrar RAM.")
+
         if self._model is None:
             with self._lock:
                 if self._model is None:
@@ -60,7 +64,7 @@ class EmbeddingsGenerator:
         for attempt in range(3):
             try:
                 logger.info(f"Intentando obtener embedding desde Hugging Face API (intento {attempt + 1})...")
-                api_url = "https://api-inference.huggingface.co/pipeline/feature-extraction/sentence-transformers/all-MiniLM-L6-v2"
+                api_url = "https://api-inference.huggingface.co/models/sentence-transformers/all-MiniLM-L6-v2"
                 
                 req = urllib.request.Request(
                     api_url,
@@ -101,17 +105,21 @@ class EmbeddingsGenerator:
                 break
 
         # 2. Fallback: Generar embedding localmente (puede consumir bastante memoria)
-        logger.info("Usando fallback de SentenceTransformer local...")
-        t_start = time.perf_counter()
-        embedding = self.model.encode(texto, convert_to_numpy=True)
-        emb_list = embedding.tolist()
-        t_duration = time.perf_counter() - t_start
+        try:
+            logger.info("Usando fallback de SentenceTransformer local...")
+            t_start = time.perf_counter()
+            embedding = self.model.encode(texto, convert_to_numpy=True)
+            emb_list = embedding.tolist()
+            t_duration = time.perf_counter() - t_start
 
-        logger.info(f"[PERF] Inferencia de SentenceTransformer local completada en {t_duration:.4f}s")
+            logger.info(f"[PERF] Inferencia de SentenceTransformer local completada en {t_duration:.4f}s")
 
-        # Guardar en caché por 24 horas (86400 segundos)
-        cache.set(cache_key, emb_list, timeout=86400)
-        return emb_list
+            # Guardar en caché por 24 horas (86400 segundos)
+            cache.set(cache_key, emb_list, timeout=86400)
+            return emb_list
+        except Exception as fallback_err:
+            logger.error(f"Fallo crítico en el fallback local de embeddings: {fallback_err}")
+            return None
 
     @staticmethod
     def generar_texto_producto(producto) -> str:

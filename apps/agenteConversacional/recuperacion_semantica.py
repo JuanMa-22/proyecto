@@ -41,6 +41,42 @@ def buscar_productos_similares(query: str, top_k: int = 5):
         query_vector = generator.generar_embedding(query)
         t_emb_duration = time.perf_counter() - t_emb_start
 
+        if query_vector is None:
+            # Fallback de búsqueda de texto si no se pudo obtener el embedding (API caída y local deshabilitado en prod)
+            logger.warning("No se pudo obtener el vector de embedding. Ejecutando fallback de búsqueda de texto ORM...")
+            from django.db.models import Q
+            from apps.producto.models import Producto
+            
+            palabras = query.strip().split()
+            q_obj = Q()
+            for pal in palabras:
+                if len(pal) > 2:  # Solo buscar palabras significativas
+                    q_obj |= Q(nombre__icontains=pal) | Q(descripcion__icontains=pal)
+            
+            if not palabras or q_obj == Q():
+                q_obj = Q(nombre__icontains=query) | Q(descripcion__icontains=query)
+                
+            productos = Producto.objects.filter(q_obj, estado=True).select_related('categoria', 'marca')[:top_k]
+            productos_retornados = []
+            for prod in productos:
+                productos_retornados.append({
+                    "id_producto": str(prod.id_producto),
+                    "nombre": prod.nombre,
+                    "descripcion": prod.descripcion,
+                    "precio_actual": float(prod.precio_actual),
+                    "precio_usd": float(prod.precio_usd),
+                    "stock": prod.stock,
+                    "categoria": prod.categoria.nombre,
+                    "marca": prod.marca.nombre,
+                    "texto_completo": f"Producto: {prod.nombre} - {prod.descripcion or ''}",
+                    "similitud": 0.85
+                })
+            
+            t_total_duration = time.perf_counter() - t_total_start
+            logger.info(f"[PERF] Búsqueda de texto de fallback completada en {t_total_duration:.4f}s")
+            cache.set(cache_key, productos_retornados, timeout=300)
+            return productos_retornados
+
         # 2. Buscar en la base de datos usando distancia coseno filtrando activos en SQL
         t_db_start = time.perf_counter()
         resultados = ProductoEmbedding.objects.filter(producto__estado=True).annotate(
