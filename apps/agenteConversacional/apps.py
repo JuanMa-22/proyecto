@@ -15,12 +15,18 @@ class AgenteConversacionalConfig(AppConfig):
 
         @receiver(post_save, sender=Producto)
         def al_guardar_producto(sender, instance, **kwargs):
+            # Evitar ejecutar durante la carga de datos iniciales o fixtures (raw=True)
+            if kwargs.get('raw', False):
+                return
             # Solo indexar si el producto está activo
             if instance.estado:
                 actualizar_embedding_producto_task.delay(str(instance.pk))
 
         @receiver(post_save, sender=ProductoEspecificacion)
         def al_guardar_especificacion(sender, instance, **kwargs):
+            # Evitar ejecutar durante la carga de datos iniciales o fixtures (raw=True)
+            if kwargs.get('raw', False):
+                return
             # Si se actualizan especificaciones, regenerar el embedding del producto relacionado
             if instance.estado and instance.producto:
                 actualizar_embedding_producto_task.delay(str(instance.producto.pk))
