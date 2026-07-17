@@ -39,6 +39,13 @@ SESSION_COOKIE_AGE = 7200  # 2 horas
 CSRF_COOKIE_SAMESITE = "Lax"
 CSRF_COOKIE_SECURE = not DEBUG
 
+# Orígenes de confianza para la verificación de CSRF en producción (HTTPS)
+CSRF_TRUSTED_ORIGINS = [
+    "https://sismeing.com",
+    "https://www.sismeing.com",
+    "https://*.onrender.com",
+]
+
 if not DEBUG:
     ALLOWED_HOSTS = [
         "sismeing.com",
