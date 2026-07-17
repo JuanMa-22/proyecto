@@ -9,7 +9,8 @@ from apps.especificacion.ia import generar_especificaciones
 
 @receiver(post_save, sender=Producto)
 def crear_especificacion(sender, instance, created, **kwargs):
-
+    if kwargs.get('raw', False):
+        return
     if created:
 
         data = generar_especificaciones(instance.nombre)

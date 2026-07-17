@@ -13,6 +13,8 @@ def producto_post_save(sender, instance, created, **kwargs):
     Se dispara al crear o modificar un producto.
     Lanza la tarea de Celery para generar/actualizar el embedding en segundo plano.
     """
+    if kwargs.get('raw', False):
+        return
     try:
         actualizar_embedding_producto_task.delay(str(instance.id_producto))
     except Exception as e:
@@ -24,6 +26,8 @@ def especificaciones_post_save(sender, instance, created, **kwargs):
     Se dispara al crear o modificar especificaciones técnicas.
     Regenera el embedding del producto asociado, ya que los embeddings contienen especificaciones.
     """
+    if kwargs.get('raw', False):
+        return
     if instance.producto:
         try:
             actualizar_embedding_producto_task.delay(str(instance.producto.id_producto))
