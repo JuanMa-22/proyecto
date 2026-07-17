@@ -139,6 +139,7 @@ def regenerar_todos_los_embeddings_task():
 
 from celery.signals import task_postrun
 from django.db import connections
+from django.conf import settings
 
 @task_postrun.connect
 def close_db_connections(*args, **kwargs):
@@ -146,6 +147,11 @@ def close_db_connections(*args, **kwargs):
     Cierra todas las conexiones a la base de datos al finalizar cada tarea de Celery,
     previniendo fugas de conexiones y caídas de base de datos en producción.
     """
+    # Si las tareas corren síncronas en el mismo proceso (ALWAYS_EAGER),
+    # no debemos cerrar las conexiones a la mitad de la transacción del proceso principal.
+    if getattr(settings, 'CELERY_TASK_ALWAYS_EAGER', False):
+        return
+
     try:
         connections.close_all()
         logger.info("[PERF] Conexiones a la base de datos cerradas correctamente tras la ejecución de la tarea.")
