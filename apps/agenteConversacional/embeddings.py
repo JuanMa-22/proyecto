@@ -38,7 +38,11 @@ class EmbeddingsGenerator:
 
         import hashlib
         import time
+        import urllib.request
+        import urllib.error
+        import json
         from django.core.cache import cache
+        from decouple import config
 
         # Generar clave de caché para el embedding
         texto_norm = texto.strip().lower()
@@ -51,13 +55,59 @@ class EmbeddingsGenerator:
             logger.info("[CACHE HIT] Embedding recuperado de caché.")
             return cached_emb
 
-        # Generar embedding y convertir a lista midiendo el tiempo de inferencia
+        # 1. Intentar obtener el embedding usando la API de inferencia de Hugging Face
+        # Esto consume 0 MB de RAM y es perfecto para servidores gratuitos
+        for attempt in range(3):
+            try:
+                logger.info(f"Intentando obtener embedding desde Hugging Face API (intento {attempt + 1})...")
+                api_url = "https://api-inference.huggingface.co/pipeline/feature-extraction/sentence-transformers/all-MiniLM-L6-v2"
+                
+                req = urllib.request.Request(
+                    api_url,
+                    data=json.dumps({"inputs": texto}).encode("utf-8"),
+                    headers={"Content-Type": "application/json"},
+                    method="POST"
+                )
+                hf_token = config('HF_TOKEN', default=None)
+                if hf_token:
+                    req.add_header("Authorization", f"Bearer {hf_token}")
+                    
+                with urllib.request.urlopen(req, timeout=5) as response:
+                    emb_list = json.loads(response.read().decode("utf-8"))
+                    if isinstance(emb_list, list) and len(emb_list) > 0:
+                        if isinstance(emb_list[0], list):
+                            emb_list = emb_list[0]
+                        if len(emb_list) == 384:
+                            logger.info("Embedding obtenido exitosamente desde Hugging Face API.")
+                            cache.set(cache_key, emb_list, timeout=86400)
+                            return emb_list
+                break
+            except urllib.error.HTTPError as he:
+                # Si el modelo se está cargando (status 503), esperar 2 segundos y reintentar
+                if he.code == 503:
+                    try:
+                        err_data = json.loads(he.read().decode("utf-8"))
+                        if "loading" in err_data.get("error", ""):
+                            est_time = err_data.get("estimated_time", 2.0)
+                            logger.info(f"El modelo de Hugging Face se está cargando en la API. Esperando {est_time:.1f}s antes de reintentar...")
+                            time.sleep(min(est_time, 3.0))
+                            continue
+                    except Exception:
+                        pass
+                logger.warning(f"Error HTTP en Hugging Face API: {he.code}. Usando fallback...")
+                break
+            except Exception as e:
+                logger.error(f"Error de red en Hugging Face API: {e}. Usando fallback...")
+                break
+
+        # 2. Fallback: Generar embedding localmente (puede consumir bastante memoria)
+        logger.info("Usando fallback de SentenceTransformer local...")
         t_start = time.perf_counter()
         embedding = self.model.encode(texto, convert_to_numpy=True)
         emb_list = embedding.tolist()
         t_duration = time.perf_counter() - t_start
 
-        logger.info(f"[PERF] Inferencia de SentenceTransformer completada en {t_duration:.4f}s")
+        logger.info(f"[PERF] Inferencia de SentenceTransformer local completada en {t_duration:.4f}s")
 
         # Guardar en caché por 24 horas (86400 segundos)
         cache.set(cache_key, emb_list, timeout=86400)
