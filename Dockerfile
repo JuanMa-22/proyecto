@@ -28,8 +28,11 @@ RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTr
 # Copiar el código del proyecto
 COPY . /app/
 
+# Dar permisos de ejecución al script de arranque
+RUN chmod +x /app/start.sh
+
 # Exponer el puerto por defecto
 EXPOSE 8000
 
-# Arrancar con Daphne (ASGI) para soportar WebSockets y HTTP en el puerto 8000
-CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "config.asgi:application"]
+# Arrancar usando el script que levanta Celery y Daphne
+CMD ["/app/start.sh"]

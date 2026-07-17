@@ -43,9 +43,12 @@ if not DEBUG:
     ALLOWED_HOSTS = [
         "sismeing.com",
         "www.sismeing.com",
+        ".onrender.com",  # Permitir subdominios de Render
     ]
     SECURE_SSL_REDIRECT = True
     SECURE_HSTS_SECONDS = 3600  # Progresivo: comenzar con 1 hora
+    # Indica a Django que la conexión es segura (HTTPS) porque Render maneja SSL en el proxy
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 else:
     ALLOWED_HOSTS = ["*"]
 
@@ -89,6 +92,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Servir archivos estáticos
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -123,21 +127,41 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('DB_NAME'),
-        'USER': config('DB_USER'),
-        'PASSWORD': config('DB_PASSWORD'),
-        'HOST': config('DB_HOST'),
-        'PORT': config('DB_PORT'),
-        'OPTIONS': {
-            # Timeouts críticos para evitar queries colgadas
-            'connect_timeout': 10,
-            'options': '-c statement_timeout=10000',  # 10 segundos en milisegundos
-        },
+import urllib.parse as urlparse
+
+DATABASE_URL = config('DATABASE_URL', default=None)
+
+if DATABASE_URL:
+    url = urlparse.urlparse(DATABASE_URL)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': url.path[1:],
+            'USER': url.username,
+            'PASSWORD': url.password,
+            'HOST': url.hostname,
+            'PORT': url.port or 5432,
+            'OPTIONS': {
+                'connect_timeout': 10,
+                'options': '-c statement_timeout=10000',
+            },
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': config('DB_NAME', default=''),
+            'USER': config('DB_USER', default=''),
+            'PASSWORD': config('DB_PASSWORD', default=''),
+            'HOST': config('DB_HOST', default=''),
+            'PORT': config('DB_PORT', default=''),
+            'OPTIONS': {
+                'connect_timeout': 10,
+                'options': '-c statement_timeout=10000',
+            },
+        }
+    }
 
 
 # Password validation

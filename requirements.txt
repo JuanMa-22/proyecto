@@ -18,3 +18,4 @@ daphne
 reportlab
 openpyxl
 edge-tts
+whitenoise
