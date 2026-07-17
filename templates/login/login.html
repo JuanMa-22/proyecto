@@ -1,0 +1,373 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sismeing — Iniciar Sesión</title>
+    <meta name="description" content="Accede al panel administrativo de Sismeing.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --accent:       #B22222;
+            --accent-light: #D94040;
+            --orange:       #F28C28;
+            --sidebar-bg:   #1E1E1E;
+            --text-primary: #2B2B2B;
+            --text-muted:   #6B7280;
+            --border:       #E4E9F2;
+            --bg:           #F7F9FC;
+            --card:         #FFFFFF;
+            --error:        #EF4444;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--sidebar-bg);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* ── Fondo decorativo ── */
+        body::before {
+            content: '';
+            position: absolute;
+            width: 700px; height: 700px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(178,34,34,0.15) 0%, transparent 70%);
+            top: -200px; left: -200px;
+            pointer-events: none;
+        }
+        body::after {
+            content: '';
+            position: absolute;
+            width: 500px; height: 500px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(242,140,40,0.10) 0%, transparent 70%);
+            bottom: -150px; right: -150px;
+            pointer-events: none;
+        }
+        .deco-ring {
+            position: fixed;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.05);
+            pointer-events: none;
+        }
+        .r1 { width: 500px; height: 500px; top: -80px;  right: -120px; }
+        .r2 { width: 280px; height: 280px; bottom: -60px; left: -60px;  }
+        .r3 { width: 120px; height: 120px; bottom: 30%;  right: 8%;
+              border-color: rgba(178,34,34,0.2); }
+
+        /* ── Card ── */
+        .login-card {
+            position: relative;
+            z-index: 10;
+            background: var(--card);
+            border-radius: 24px;
+            padding: 48px 44px 40px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 32px 80px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.06);
+            animation: cardIn 0.5s cubic-bezier(.22,.68,0,1.2);
+        }
+        @keyframes cardIn {
+            from { opacity: 0; transform: translateY(30px) scale(0.97); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* ── Logo ── */
+        .logo-wrap {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        .logo-wrap img {
+            width: 130px;
+            max-width: 100%;
+            filter: drop-shadow(0 4px 16px rgba(178,34,34,0.3));
+            animation: floatLogo 4s ease-in-out infinite;
+        }
+        @keyframes floatLogo {
+            0%, 100% { transform: translateY(0); }
+            50%       { transform: translateY(-6px); }
+        }
+
+        /* ── Heading ── */
+        .login-heading {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .login-heading h1 {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+        .login-heading p {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+        .accent-bar {
+            display: block;
+            width: 40px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), var(--orange));
+            border-radius: 4px;
+            margin: 10px auto 0;
+        }
+
+        /* ── Error alert ── */
+        .alert-error {
+            background: rgba(239,68,68,0.08);
+            border: 1px solid rgba(239,68,68,0.25);
+            border-radius: 10px;
+            padding: 11px 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: var(--error);
+            font-weight: 500;
+            animation: shakeIn 0.4s ease;
+        }
+        @keyframes shakeIn {
+            0%   { transform: translateX(-6px); opacity:0; }
+            40%  { transform: translateX( 4px); }
+            70%  { transform: translateX(-2px); }
+            100% { transform: translateX(0);    opacity:1; }
+        }
+
+        /* ── Inputs ── */
+        .form-field { margin-bottom: 18px; }
+        .form-field label {
+            display: block;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 7px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .input-wrap { position: relative; }
+        .input-wrap .ico {
+            position: absolute;
+            left: 13px; top: 50%;
+            transform: translateY(-50%);
+            font-size: 18px;
+            color: var(--text-muted);
+            pointer-events: none;
+            transition: color 0.25s;
+        }
+        .input-wrap input {
+            width: 100%;
+            padding: 12px 14px 12px 42px;
+            border: 1.5px solid var(--border);
+            border-radius: 11px;
+            background: var(--bg);
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            color: var(--text-primary);
+            outline: none;
+            transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
+        }
+        .input-wrap input::placeholder { color: #B0BAC9; }
+        .input-wrap input:focus {
+            border-color: var(--accent);
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(178,34,34,0.09);
+        }
+        .input-wrap:focus-within .ico { color: var(--accent); }
+
+        /* toggle password */
+        .toggle-pwd {
+            position: absolute;
+            right: 12px; top: 50%;
+            transform: translateY(-50%);
+            background: none; border: none;
+            color: var(--text-muted);
+            cursor: pointer; font-size: 18px;
+            display: flex; align-items: center;
+            transition: color 0.2s;
+        }
+        .toggle-pwd:hover { color: var(--accent); }
+
+        /* ── Extras row ── */
+        .form-extra {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            font-size: 12.5px;
+        }
+        .remember-label {
+            display: flex; align-items: center; gap: 7px;
+            cursor: pointer; color: var(--text-muted);
+            font-weight: 500; user-select: none;
+        }
+        .remember-label input[type="checkbox"] {
+            width: 15px; height: 15px;
+            accent-color: var(--accent); cursor: pointer;
+        }
+        .forgot-link {
+            color: var(--accent); font-weight: 600;
+            text-decoration: none; transition: color 0.2s;
+        }
+        .forgot-link:hover { color: var(--accent-light); }
+
+        /* ── Submit button ── */
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            letter-spacing: 0.3px;
+            box-shadow: 0 6px 22px rgba(178,34,34,0.38);
+            transition: transform 0.2s, box-shadow 0.3s, filter 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-login::after {
+            content: '';
+            position: absolute; inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.14), transparent);
+            opacity: 0; transition: opacity 0.3s;
+        }
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(178,34,34,0.45);
+            filter: brightness(1.07);
+        }
+        .btn-login:hover::after { opacity: 1; }
+        .btn-login:active { transform: translateY(0); }
+
+        /* ── Footer ── */
+        .login-footer {
+            margin-top: 22px;
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .login-footer i { color: var(--accent); font-size: 14px; }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        @media (max-width: 480px) {
+            .login-card { padding: 36px 24px 30px; border-radius: 18px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="deco-ring r1"></div>
+    <div class="deco-ring r2"></div>
+    <div class="deco-ring r3"></div>
+
+    <div class="login-card">
+
+        <!-- Logo -->
+        <div class="logo-wrap">
+            <a href="{% url 'web:inicio_pagina' %}" title="Ir al inicio" style="display:inline-block;">
+                <img src="{% static 'img/logo.png' %}" alt="Logo Sismeing">
+            </a>
+        </div>
+
+        <!-- Heading -->
+        <div class="login-heading">
+            <h1>Bienvenido a Sismeing</h1>
+            <p>Ingresa tus credenciales para continuar</p>
+            <span class="accent-bar"></span>
+        </div>
+
+        <!-- Error -->
+        {% if error %}
+        <div class="alert-error">
+            <i class='bx bx-error-circle' style="font-size:17px;flex-shrink:0;"></i>
+            {{ error }}
+        </div>
+        {% endif %}
+        {% for message in messages %}
+        <div class="alert-error">
+            <i class='bx bx-error-circle' style="font-size:17px;flex-shrink:0;"></i>
+            {{ message }}
+        </div>
+        {% endfor %}
+
+        <!-- Form -->
+        <form method="POST" action="{% url 'usuario:login' %}" id="loginForm" novalidate>
+            {% csrf_token %}
+
+            <div class="form-field">
+                <label for="f-usuario">Usuario</label>
+                <div class="input-wrap">
+                    <i class='bx bx-user ico'></i>
+                    <input type="text" id="f-usuario" name="usuario"
+                           placeholder="Tu nombre de usuario"
+                           autocomplete="username"
+                           value="{{ request.POST.usuario }}" required>
+                </div>
+            </div>
+
+            <div class="form-field">
+                <label for="f-password">Contraseña</label>
+                <div class="input-wrap">
+                    <i class='bx bx-lock-alt ico'></i>
+                    <input type="password" id="f-password" name="password"
+                           placeholder="Tu contraseña"
+                           autocomplete="current-password" required>
+                    <button type="button" class="toggle-pwd" id="togglePwd" aria-label="Ver contraseña">
+                        <i class='bx bx-hide' id="toggleIcon"></i>
+                    </button>
+                </div>
+            </div>
+
+            
+
+            <button type="submit" class="btn-login" id="btnLogin">
+                <i class='bx bx-log-in'></i>
+                Iniciar sesión
+            </button>
+        </form>
+
+    </div>
+
+    <script>
+        // Mostrar/ocultar contraseña
+        const pwdInput  = document.getElementById('f-password');
+        const toggleBtn = document.getElementById('togglePwd');
+        const toggleIco = document.getElementById('toggleIcon');
+        toggleBtn.addEventListener('click', () => {
+            const hidden = pwdInput.type === 'password';
+            pwdInput.type = hidden ? 'text' : 'password';
+            toggleIco.classList.toggle('bx-hide', !hidden);
+            toggleIco.classList.toggle('bx-show',  hidden);
+        });
+
+        // Estado de carga al enviar
+        document.getElementById('loginForm').addEventListener('submit', () => {
+            const btn = document.getElementById('btnLogin');
+            btn.innerHTML = `<i class='bx bx-loader-alt' style="animation:spin .8s linear infinite"></i> Verificando...`;
+            btn.disabled = true;
+        });
+    </script>
+</body>
+</html>

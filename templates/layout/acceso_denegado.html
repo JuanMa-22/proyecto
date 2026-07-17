@@ -1,0 +1,272 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso Denegado — Sismeing</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --accent:       #B22222;
+            --accent-light: #D94040;
+            --orange:       #F28C28;
+            --sidebar-bg:   #1E1E1E;
+            --text-primary: #2B2B2B;
+            --text-muted:   #6B7280;
+            --border:       #E4E9F2;
+            --bg:           #F7F9FC;
+            --card:         #FFFFFF;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--sidebar-bg);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Fondo decorativo */
+        body::before {
+            content: '';
+            position: absolute;
+            width: 700px; height: 700px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(178,34,34,0.15) 0%, transparent 70%);
+            top: -200px; left: -200px;
+            pointer-events: none;
+        }
+        body::after {
+            content: '';
+            position: absolute;
+            width: 500px; height: 500px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(242,140,40,0.08) 0%, transparent 70%);
+            bottom: -150px; right: -150px;
+            pointer-events: none;
+        }
+
+        .deco-ring {
+            position: fixed;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.05);
+            pointer-events: none;
+        }
+        .r1 { width: 500px; height: 500px; top: -80px;  right: -120px; }
+        .r2 { width: 280px; height: 280px; bottom: -60px; left: -60px; }
+
+        /* Card principal */
+        .card {
+            position: relative;
+            z-index: 10;
+            background: var(--card);
+            border-radius: 24px;
+            padding: 56px 48px 48px;
+            width: 100%;
+            max-width: 460px;
+            text-align: center;
+            box-shadow: 0 32px 80px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.06);
+            animation: cardIn 0.5s cubic-bezier(.22,.68,0,1.2);
+        }
+
+        @keyframes cardIn {
+            from { opacity: 0; transform: translateY(30px) scale(0.97); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* Ícono principal */
+        .icono-wrap {
+            width: 88px;
+            height: 88px;
+            border-radius: 24px;
+            background: linear-gradient(135deg, rgba(178,34,34,0.12), rgba(242,140,40,0.10));
+            border: 1.5px solid rgba(178,34,34,0.18);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 28px;
+            animation: pulseRing 2.5s ease-in-out infinite;
+        }
+        @keyframes pulseRing {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(178,34,34,0.15); }
+            50%       { box-shadow: 0 0 0 12px rgba(178,34,34,0.0); }
+        }
+        .icono-wrap i {
+            font-size: 42px;
+            color: #B22222;
+        }
+
+        /* Código de error */
+        .codigo-error {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #B22222;
+            background: rgba(178,34,34,0.08);
+            border: 1px solid rgba(178,34,34,0.15);
+            border-radius: 20px;
+            padding: 5px 14px;
+            display: inline-block;
+            margin-bottom: 18px;
+        }
+
+        h1 {
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            line-height: 1.2;
+        }
+
+        .acento {
+            display: block;
+            width: 40px;
+            height: 3px;
+            background: linear-gradient(90deg, #B22222, #F28C28);
+            border-radius: 4px;
+            margin: 14px auto 20px;
+        }
+
+        p {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.7;
+            margin-bottom: 32px;
+        }
+
+        p strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        /* Botones */
+        .acciones {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 13px 24px;
+            background: linear-gradient(135deg, #B22222, #D94040);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            box-shadow: 0 6px 22px rgba(178,34,34,0.35);
+            transition: transform 0.2s, box-shadow 0.3s, filter 0.3s;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 28px rgba(178,34,34,0.42);
+            filter: brightness(1.07);
+        }
+
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 13px 24px;
+            background: transparent;
+            color: var(--text-muted);
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: border-color 0.2s, color 0.2s, background 0.2s;
+        }
+        .btn-secondary:hover {
+            border-color: #B22222;
+            color: #B22222;
+            background: rgba(178,34,34,0.04);
+        }
+
+        /* Usuario actual */
+        .usuario-info {
+            margin-top: 28px;
+            padding: 12px 16px;
+            background: var(--bg);
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+        .usuario-info i { color: #B22222; font-size: 16px; flex-shrink: 0; }
+        .usuario-info strong { color: var(--text-primary); font-weight: 600; }
+
+        @media (max-width: 480px) {
+            .card { padding: 40px 24px 36px; border-radius: 18px; }
+            h1 { font-size: 22px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="deco-ring r1"></div>
+    <div class="deco-ring r2"></div>
+
+    <div class="card">
+
+        <!-- Ícono -->
+        <div class="icono-wrap">
+            <i class='bx bx-shield-x'></i>
+        </div>
+
+        <!-- Badge error -->
+        <span class="codigo-error">Error 403 — Acceso Denegado</span>
+
+        <!-- Título -->
+        <h1>Sin permisos para esta sección</h1>
+        <span class="acento"></span>
+
+        <!-- Mensaje -->
+        <p>
+            Tu rol de <strong>{{ request.session.usuario_rol }}</strong> no tiene acceso
+            a esta área del sistema.<br>
+            Si crees que esto es un error, contacta al administrador.
+        </p>
+
+        <!-- Acciones -->
+        <div class="acciones">
+            <a href="{% url 'web:dashboard' %}" class="btn-primary">
+                <i class='bx bxs-dashboard'></i>
+                Ir al Dashboard
+            </a>
+            <a href="javascript:history.back()" class="btn-secondary">
+                <i class='bx bx-arrow-back'></i>
+                Volver
+            </a>
+        </div>
+
+        <!-- Info del usuario actual -->
+        {% if request.session.usuario_nombre %}
+        <div class="usuario-info">
+            <i class='bx bx-user-circle'></i>
+            <span>Conectado como: <strong>{{ request.session.usuario_nombre }}</strong> — {{ request.session.usuario_rol }}</span>
+        </div>
+        {% endif %}
+
+    </div>
+</body>
+</html>

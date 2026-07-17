@@ -1,0 +1,37 @@
+<div id="modalEditarInventario{{ item.id_inventario }}" class="modal">
+    <div class="modal-content" style="max-width: 500px; width: 95%;">
+        <span class="close" onclick="cerrarModal('modalEditarInventario{{ item.id_inventario }}')">&times;</span>
+        <h3 class="card-title" style="margin-bottom: 20px;">Ajustar Parámetros de Inventario</h3>
+
+        <div style="background-color: var(--background-hover); padding: 12px; border-radius: 6px; margin-bottom: 20px; border-left: 4px solid var(--accent-color); text-align: left;">
+            <h4 style="color: var(--text-primary); margin-bottom: 5px; font-size: 14px;">{{ item.producto.nombre }}</h4>
+            <p style="color: var(--text-secondary); font-size: 12px; margin: 0;">
+                Stock Físico Actual: <strong style="color: var(--accent-color);">{{ item.producto.stock }} unidades</strong>
+            </p>
+        </div>
+
+        <form action="{% url 'inventario:editar' item.id_inventario %}" method="POST">
+            {% csrf_token %}
+            
+            <div class="form-group" style="display: flex; gap: 15px; text-align: left;">
+                <div style="flex: 1;">
+                    <label>Stock Mínimo</label>
+                    <input type="number" name="stock_minimo" value="{{ item.stock_minimo }}" required min="0" step="1">
+                    <small style="color: var(--text-secondary); display: block; margin-top: 5px; font-size: 11px;">Alerta de Stock Bajo.</small>
+                </div>
+                <div style="flex: 1;">
+                    <label>Stock Máximo</label>
+                    <input type="number" name="stock_maximo" value="{{ item.stock_maximo }}" required min="0" step="1">
+                    <small style="color: var(--text-secondary); display: block; margin-top: 5px; font-size: 11px;">Capacidad recomendada.</small>
+                </div>
+            </div>
+
+
+
+            <div style="text-align: right; margin-top: 25px;">
+                <button type="button" class="btn-secondary" onclick="cerrarModal('modalEditarInventario{{ item.id_inventario }}')">Cancelar</button>
+                <button type="submit" class="btn-primary">Guardar Ajustes</button>
+            </div>
+        </form>
+    </div>
+</div>

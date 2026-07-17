@@ -1,0 +1,53 @@
+{% extends 'pagina/base.html' %}
+{% load static %}
+
+{% block title %}Sobre Nosotros | SISMEING - Pasión por la Tecnología{% endblock %}
+{% block meta_description %}Conoce SISMEING. Somos líderes en Bolivia en soluciones tecnológicas, armado de computadoras de alto rendimiento y soporte de hardware profesional.{% endblock %}
+
+{% block og_title %}Sobre Nosotros | SISMEING - Pasión por la Tecnología{% endblock %}
+{% block og_description %}Conoce SISMEING. Somos líderes en Bolivia en soluciones tecnológicas, armado de computadoras de alto rendimiento y soporte de hardware profesional.{% endblock %}
+
+{% block twitter_title %}Sobre Nosotros | SISMEING - Pasión por la Tecnología{% endblock %}
+{% block twitter_description %}Conoce SISMEING. Somos líderes en Bolivia en soluciones tecnológicas, armado de computadoras de alto rendimiento y soporte de hardware profesional.{% endblock %}
+
+{% block content %}
+<div class="inner-page-padding">
+    <section>
+    <div class="section-title">
+        <h1>Sobre Sismeing</h1>
+    </div>
+    <div class="contact-container">
+        <div>
+            <h3 style="font-size: 2rem; color: var(--primary); margin-bottom: 1rem;">Nuestra Misión</h3>
+            <p style="font-size: 1.1rem; margin-bottom: 2rem; line-height: 1.6;">La misión de Sismeing es ofrecer equipos, componentes informáticos y servicios de mantenimiento, brindando productos de calidad y atención personalizada a estudiantes, profesionales, técnicos y público en general.</p>
+            
+            <h3 style="font-size: 2rem; color: var(--primary); margin-bottom: 1rem;">Nuestra Visión</h3>
+            <p style="font-size: 1.1rem; line-height: 1.6;">La visión de Sismeing es consolidarse como una empresa reconocida en el mercado local de La Paz, destacándose por la calidad de sus productos, la atención al cliente y el uso de herramientas tecnológicas para mejorar su gestión comercial.</p>
+        </div>
+        <div class="glass-card" style="display: flex; align-items: center; justify-content: center;">
+            <img src="{% static 'img/logo.png' %}" alt="Sismeing Logo" style="width: 80%; filter: drop-shadow(0 0 20px var(--primary-glow));">
+        </div>
+    </div>
+</section>
+
+<section>
+    <div class="section-title">
+        <h2>Nuestros Valores</h2>
+    </div>
+    <div class="grid-cards">
+        <div class="glass-card">
+            <h3>Innovación</h3>
+            <p>Siempre a la vanguardia de las últimas tendencias tecnológicas y mejores prácticas de ingeniería.</p>
+        </div>
+        <div class="glass-card">
+            <h3>Calidad</h3>
+            <p>No comprometemos la calidad de nuestros componentes ni de nuestro servicio técnico.</p>
+        </div>
+        <div class="glass-card">
+            <h3>Transparencia</h3>
+            <p>Comunicación clara y honesta con nuestros clientes en cada etapa del proceso.</p>
+        </div>
+    </div>
+    </section>
+</div>
+{% endblock %}

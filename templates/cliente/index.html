@@ -1,0 +1,161 @@
+{% extends 'layout/base.html' %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="card">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <h2 class="card-title">
+                {% if mostrar_inactivos %}
+                    Listado de Clientes Inactivos
+                {% else %}
+                    Listado de Clientes
+                {% endif %}
+            </h2>
+            <div style="display: flex; gap: 10px;">
+                {% if mostrar_inactivos %}
+                    <a href="{% url 'cliente:index' %}" class="btn-primary" style="background-color: var(--blue-color); color: var(--text-primary); box-shadow: none;">
+                        <i class='bx bx-show'></i> Ver Activos
+                    </a>
+                {% else %}
+                    <a href="?inactivos=true" class="btn-primary" style="background: var(--text-secondary); box-shadow: none;">
+                        <i class='bx bx-hide'></i> Ver Inactivos
+                    </a>
+                    <button class="btn-primary" onclick="abrirModal('modalCrearCliente')">
+                        <i class='bx bx-plus'></i> Crear Cliente
+                    </button>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Include Modal Crear -->
+        {% if not mostrar_inactivos %}
+            {% include 'cliente/crear.html' %}
+        {% endif %}
+
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Apellido</th>
+                        <th>Email</th>
+                        <th>Teléfono</th>
+                        <th>Dirección</th>
+                        <th>CI/NIT</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in clientes %}
+                    <tr>
+                        <td>{{ item.nombre }}</td>
+                        <td>{{ item.apellido }}</td>
+                        <td>{{ item.email }}</td>
+                        <td>{{ item.telefono }}</td>
+                        <td>{{ item.direccion }}</td>
+                        <td>{{ item.ci }}</td>
+                        <td>
+                            {% if mostrar_inactivos %}
+                                <form action="{% url 'cliente:activar' item.id_cliente %}" method="POST" style="display:inline;" onsubmit="event.preventDefault(); pedirConfirmacionActivar(this, '{{ item.nombre }} {{ item.apellido }}');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-icon" title="Restaurar" style="color: var(--green-color);">
+                                        <i class='bx bx-refresh' style="font-size: 20px;"></i>
+                                    </button>
+                                </form>
+                            {% else %}
+                                <button class="btn-icon" onclick="abrirModal('modalEditar{{ item.id_cliente }}')" title="Editar">
+                                    <i class='bx bx-edit-alt'></i>
+                                </button>
+                                <form action="{% url 'cliente:eliminar' item.id_cliente %}" method="POST" style="display:inline;" onsubmit="event.preventDefault(); pedirConfirmacion(this, '{{ item.nombre }} {{ item.apellido }}');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-icon" title="Eliminar">
+                                        <i class='bx bx-trash' style="color: var(--red-color);"></i>
+                                    </button>
+                                </form>
+                                <!-- Include Modal Editar -->
+                                {% include 'cliente/editar.html' with item=item %}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        let table = new DataTable('.data-table', {
+            language: {
+                processing: "Procesando...",
+                search: "Buscar:",
+                lengthMenu: "Mostrar _MENU_ registros",
+                info: "Mostrando de _START_ a _END_ de _TOTAL_ registros",
+                infoEmpty: "Mostrando 0 a 0 de 0 registros",
+                infoFiltered: "(filtrado de _MAX_ registros en total)",
+                infoPostFix: "",
+                loadingRecords: "Cargando...",
+                zeroRecords: "No se encontraron resultados",
+                emptyTable: "Ningún dato disponible en esta tabla",
+                paginate: {
+                    first: "Primero",
+                    previous: "Anterior",
+                    next: "Siguiente",
+                    last: "Último"
+                },
+                aria: {
+                    sortAscending: ": Activar para ordenar la columna de manera ascendente",
+                    sortDescending: ": Activar para ordenar la columna de manera descendente"
+                }
+            }
+        });
+
+        {% if messages %}
+            {% for message in messages %}
+                Swal.fire({
+                    position: "top-end",
+                    icon: "{{ message.tags }}" === "error" ? "error" : "success",
+                    title: "{{ message }}",
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+            {% endfor %}
+        {% endif %}
+    });
+
+    function pedirConfirmacion(formEl, nombre) {
+        Swal.fire({
+            title: "¿Estás seguro?",
+            text: "¡No podrás revertir esto!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Sí, desactivar!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                formEl.submit();
+            }
+        });
+    }
+
+    function pedirConfirmacionActivar(formEl, nombre) {
+        Swal.fire({
+            title: "¿Estás seguro?",
+            text: "¡Esto reactivará el registro '" + nombre + "'!",
+            icon: "info",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Sí, activar!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                formEl.submit();
+            }
+        });
+    }
+</script>
+{% endblock %}

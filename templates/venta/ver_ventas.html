@@ -1,0 +1,125 @@
+<div id="modalVerVenta{{ venta.id_venta }}" class="modal modal-lg">
+    <div class="modal-content" style="max-width: 800px; width: 95%; text-align: left;">
+        <span class="close" onclick="cerrarModal('modalVerVenta{{ venta.id_venta }}')">&times;</span>
+        <h3 class="card-title" style="margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+            <i class='bx bx-receipt' style="color: var(--accent-color); font-size: 24px;"></i> Detalle de Venta
+        </h3>
+
+        <!-- Cards section -->
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:15px; margin-bottom: 20px;">
+            <!-- Información de la Venta -->
+            <div style="padding:15px; border-radius:8px; background:var(--background-hover); border:1px solid var(--border-color);">
+                <h4 style="font-size:14px; font-weight:700; color:var(--text-primary); margin-bottom:12px; display:flex; align-items:center; gap:6px;">
+                    <i class='bx bx-info-circle' style="color:var(--accent-color);"></i> General
+                </h4>
+                <div style="display:flex; flex-direction:column; gap:8px;">
+                    <div style="display:flex; justify-content:space-between; font-size:12px;">
+                        <span style="color:var(--text-secondary);">ID:</span>
+                        <strong style="color:var(--text-primary); font-family:monospace;">{{ venta.id_venta|truncatechars:10 }}</strong>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; font-size:12px;">
+                        <span style="color:var(--text-secondary);">Fecha:</span>
+                        <strong style="color:var(--text-primary);">{{ venta.fecha|date:"d/m/Y" }}</strong>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; font-size:12px;">
+                        <span style="color:var(--text-secondary);">Estado:</span>
+                        {% if venta.estado %}
+                            <span class="status entregado" style="font-size:10px; padding:2px 6px; border-radius:4px;">Completada</span>
+                        {% else %}
+                            <span class="status cancelado" style="font-size:10px; padding:2px 6px; border-radius:4px;">Anulada</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información del Cliente -->
+            <div style="padding:15px; border-radius:8px; background:var(--background-hover); border:1px solid var(--border-color);">
+                <h4 style="font-size:14px; font-weight:700; color:var(--text-primary); margin-bottom:12px; display:flex; align-items:center; gap:6px;">
+                    <i class='bx bx-user' style="color:var(--accent-color);"></i> Cliente
+                </h4>
+                <div style="display:flex; flex-direction:column; gap:8px;">
+                    <div style="display:flex; justify-content:space-between; font-size:12px;">
+                        <span style="color:var(--text-secondary);">Nombre:</span>
+                        <strong style="color:var(--text-primary);">{{ venta.cliente.nombre }} {{ venta.cliente.apellido }}</strong>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; font-size:12px;">
+                        <span style="color:var(--text-secondary);">CI / NIT:</span>
+                        <strong style="color:var(--text-primary);">{{ venta.cliente.ci }}</strong>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; font-size:12px;">
+                        <span style="color:var(--text-secondary);">Teléfono:</span>
+                        <strong style="color:var(--text-primary);">{{ venta.cliente.telefono }}</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información de Registro -->
+            <div style="padding:15px; border-radius:8px; background:var(--background-hover); border:1px solid var(--border-color);">
+                <h4 style="font-size:14px; font-weight:700; color:var(--text-primary); margin-bottom:12px; display:flex; align-items:center; gap:6px;">
+                    <i class='bx bx-user-check' style="color:var(--accent-color);"></i> Atendido por
+                </h4>
+                <div style="display:flex; flex-direction:column; gap:8px;">
+                    <div style="display:flex; justify-content:space-between; font-size:12px;">
+                        <span style="color:var(--text-secondary);">Usuario:</span>
+                        <strong style="color:var(--text-primary);">{{ venta.usuario.nombre }}</strong>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; font-size:12px;">
+                        <span style="color:var(--text-secondary);">Rol:</span>
+                        <strong style="color:var(--text-primary); text-transform:capitalize;">{{ venta.usuario.rol.nombre }}</strong>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; font-size:12px;">
+                        <span style="color:var(--text-secondary);">Hora:</span>
+                        <strong style="color:var(--text-primary);">{{ venta.created_at|date:"H:i" }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Details Table -->
+        <h4 style="font-size:14px; font-weight:700; color:var(--text-primary); margin-bottom:10px;">Productos Vendidos</h4>
+        <div class="table-responsive" style="max-height: 250px; overflow-y: auto; margin-bottom: 20px;">
+            <table class="table-details" style="width: 100%;">
+                <thead>
+                    <tr>
+                        <th style="text-align: left;">Producto</th>
+                        <th style="text-align: center;">Cantidad</th>
+                        <th style="text-align: right;">Precio Unit.</th>
+                        <th style="text-align: right;">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for detalle in venta.detalleventa_set.all %}
+                    <tr>
+                        <td style="text-align: left; vertical-align: middle;">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <div style="width:30px; height:30px; border-radius:4px; background:#F7F9FC; display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0;">
+                                    {% if detalle.producto.imagen %}
+                                        <img src="/media/{{ detalle.producto.imagen }}" style="width:100%; height:100%; object-fit:cover;" alt="">
+                                    {% else %}
+                                        <i class='bx bx-package' style="color:#AFCBFF; font-size:14px;"></i>
+                                    {% endif %}
+                                </div>
+                                <span style="font-size: 13px;">[{{ detalle.producto.categoria.nombre }}] {{ detalle.producto.nombre }}</span>
+                            </div>
+                        </td>
+                        <td style="text-align: center; font-size: 13px;">{{ detalle.cantidad }}</td>
+                        <td style="text-align: right; font-size: 13px;">Bs. {{ detalle.precio_unitario }}</td>
+                        <td style="text-align: right; font-weight: 600; font-size: 13px;">Bs. {{ detalle.subtotal }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+            <a href="{% url 'venta:recibo_venta' venta.id_venta %}" target="_blank" class="btn-primary" style="display:inline-flex; align-items:center; gap:6px; padding:8px 16px; border-radius:6px; text-decoration:none; font-size:13px; font-weight:600;">
+                <i class='bx bx-printer'></i> Imprimir Recibo
+            </a>
+            <h3 style="color:#B22222; font-size:18px; font-weight:700; margin: 0;">Total Venta: Bs. {{ venta.total }}</h3>
+        </div>
+
+        <div style="text-align: right; margin-top: 25px;">
+            <button type="button" class="btn-secondary" onclick="cerrarModal('modalVerVenta{{ venta.id_venta }}')">Cerrar</button>
+        </div>
+    </div>
+</div>

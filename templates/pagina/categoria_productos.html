@@ -1,0 +1,188 @@
+{% extends 'pagina/base.html' %}
+{% load static %}
+
+{% block title %}{{ categoria_activa.nombre }} en La Paz | SISMEING{% endblock %}
+{% block meta_description %}Comprar {{ categoria_activa.nombre }} en La Paz, Bolivia. Encuentra variedad de modelos y marcas de {{ categoria_activa.nombre }} con garantía y soporte técnico.{% endblock %}
+
+{% block og_title %}{{ categoria_activa.nombre }} en La Paz | SISMEING{% endblock %}
+{% block og_description %}Comprar {{ categoria_activa.nombre }} en La Paz, Bolivia. Encuentra variedad de modelos y marcas de {{ categoria_activa.nombre }} con garantía y soporte técnico.{% endblock %}
+
+{% block twitter_title %}{{ categoria_activa.nombre }} en La Paz | SISMEING{% endblock %}
+{% block twitter_description %}Comprar {{ categoria_activa.nombre }} en La Paz, Bolivia. Encuentra variedad de modelos y marcas de {{ categoria_activa.nombre }} con garantía y soporte técnico.{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Estructura Sidebar + Contenido */
+    .page-wrapper {
+        display: grid;
+        grid-template-columns: 240px 1fr;
+        min-height: calc(100vh - 80px);
+        align-items: start;
+        padding-top: 80px;
+    }
+    .sidebar {
+        position: sticky;
+        top: 80px;
+        background: #fff;
+        border-right: 1px solid var(--grey-border);
+        padding: 1.5rem 0;
+        min-height: calc(100vh - 80px);
+    }
+    .sidebar-title {
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        padding: 0 1.2rem 0.75rem 1.2rem;
+        border-bottom: 1px solid var(--grey-border);
+        margin-bottom: 0.5rem;
+    }
+    .sidebar-cat-list {
+        list-style: none;
+    }
+    .sidebar-cat-list li a {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.65rem 1.2rem;
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: var(--text-dark);
+        text-decoration: none;
+        transition: all 0.2s ease;
+        border-left: 3px solid transparent;
+    }
+    .sidebar-cat-list li a:hover,
+    .sidebar-cat-list li a.active {
+        background: #fff5f0;
+        color: var(--primary);
+        border-left-color: var(--primary);
+        font-weight: 700;
+    }
+    .sidebar-cat-list li a .cat-count {
+        margin-left: auto;
+        font-size: 0.7rem;
+        background: var(--grey-border);
+        color: var(--text-muted);
+        padding: 2px 6px;
+        border-radius: 20px;
+    }
+    .sidebar-cat-list li a.active .cat-count {
+        background: var(--primary);
+        color: white;
+    }
+    .sidebar-all-link {
+        display: block;
+        text-align: center;
+        margin: 1rem 1.2rem 0 1.2rem;
+        padding: 0.5rem;
+        font-size: 0.78rem;
+        color: var(--primary);
+        font-weight: 600;
+        text-decoration: none;
+        border: 1px dashed var(--primary);
+        border-radius: 8px;
+        transition: all 0.2s;
+    }
+    .sidebar-all-link:hover {
+        background: var(--primary);
+        color: white;
+    }
+    .main-content {
+        padding: 1.5rem 2rem 3rem 2rem;
+    }
+    .category-page-header {
+        margin-bottom: 2.5rem;
+        border-bottom: 1px solid var(--grey-border);
+        padding-bottom: 1.5rem;
+    }
+    .category-page-title {
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: #fff;
+        margin-bottom: 0.5rem;
+    }
+    .category-page-desc {
+        color: var(--text-muted);
+        font-size: 1.05rem;
+        max-width: 800px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-wrapper">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="sidebar-title">Categorías</div>
+        <ul class="sidebar-cat-list">
+            {% for cat in categories %}
+            <li>
+                <a href="{% url 'web:categoria_pagina' cat.slug %}"
+                   class="{% if categoria_activa.id_categoria == cat.id_categoria %}active{% endif %}">
+                    <i class="fas fa-tag"></i>
+                    {{ cat.nombre }}
+                    <span class="cat-count">{{ cat.total_productos_disponibles }}</span>
+                </a>
+            </li>
+            {% empty %}
+            <li style="padding: 0.65rem 1.2rem; font-size: 0.82rem; color: var(--text-muted);">Sin categorías</li>
+            {% endfor %}
+        </ul>
+        <a href="{% url 'web:inicio_pagina' %}" class="sidebar-all-link">
+            <i class="fas fa-th-large"></i> Ver todo el catálogo
+        </a>
+    </aside>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <div class="main-content">
+        <div class="category-page-header">
+            <h1 class="category-page-title">{{ categoria_activa.nombre }}</h1>
+            {% if categoria_activa.descripcion %}
+            <p class="category-page-desc">{{ categoria_activa.descripcion }}</p>
+            {% else %}
+            <p class="category-page-desc">Encuentra los mejores productos y ofertas en {{ categoria_activa.nombre }} en La Paz, Bolivia.</p>
+            {% endif %}
+        </div>
+
+        <div class="products-grid-v2">
+            {% for producto in productos %}
+            <div class="product-card-v2" onclick="window.location.href='{% url 'web:detalle_producto' producto.slug %}'">
+                <div class="product-img-wrap">
+                    {% if producto.imagen %}
+                    <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }} - {{ producto.marca.nombre }} en SISMEING" loading="lazy">
+                    {% else %}
+                    <img src="https://via.placeholder.com/150x150/f8f9fa/adb5bd?text={{ producto.nombre|urlencode }}" alt="{{ producto.nombre }} - {{ producto.marca.nombre }} en SISMEING" loading="lazy">
+                    {% endif %}
+                </div>
+                <div class="product-info">
+                    <span class="cat-label">{{ producto.categoria.nombre }}</span>
+                    <h4><a href="{% url 'web:detalle_producto' producto.slug %}" style="text-decoration: none; color: inherit;">{{ producto.nombre }}</a></h4>
+                    <div class="price">
+                        Bs. {{ producto.precio_actual|floatformat:2 }}
+                        <small>/ ${{ producto.precio_usd|floatformat:2 }}</small>
+                    </div>
+                    <div class="card-actions">
+                        <a href="{% url 'web:detalle_producto' producto.slug %}" class="btn-detail" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 5px;">
+                            <i class="fas fa-eye"></i> Ver más
+                        </a>
+                        <button class="btn-chat-card" onclick="event.stopPropagation(); enviarMensajeChatDirecto('Quiero consultar sobre el producto: {{ producto.nombre|escapejs }}')">
+                            <i class="fas fa-comment-dots"></i> Consultar
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-products" style="grid-column: 1 / -1; text-align: center; padding: 4rem 0;">
+                <i class="fas fa-search" style="font-size: 3rem; color: var(--primary); margin-bottom: 1rem; display: block;"></i>
+                <p style="color: var(--text-muted); font-size: 1.1rem;">No hay productos disponibles actualmente en la categoría {{ categoria_activa.nombre }}.</p>
+                <a href="{% url 'web:inicio_pagina' %}" class="btn-orange" style="display: inline-flex; padding: 0.75rem 1.5rem; margin-top: 1rem; text-decoration: none;">
+                    Ver todos los productos
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

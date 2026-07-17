@@ -1,0 +1,23 @@
+<div id="modalEditar{{ item.id_rol }}" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="cerrarModal('modalEditar{{ item.id_rol }}')">&times;</span>
+        <h3 class="card-title" style="margin-bottom: 20px;">Editar Role</h3>
+        
+        <form action="{% url 'rol:editar' item.id_rol %}" method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>Nombre</label>
+                <input type="text" name="nombre" value="{{ item.nombre }}" required>
+            </div>
+            <div class="form-group">
+                <label>Descripción</label>
+                <input type="text" name="descripcion" value="{{ item.descripcion }}" required>
+            </div>
+            
+            <div style="text-align: right; margin-top: 25px;">
+                <button type="button" class="btn-secondary" onclick="cerrarModal('modalEditar{{ item.id_rol }}')">Cancelar</button>
+                <button type="submit" class="btn-primary">Guardar Cambios</button>
+            </div>
+        </form>
+    </div>
+</div>

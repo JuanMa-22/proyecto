@@ -1,0 +1,243 @@
+{% extends 'layout/base.html' %}
+
+{% block content %}
+<div class="dashboard-container">
+
+    <!-- Hero banner -->
+    <div style="background: linear-gradient(135deg, #1E1E1E 0%, #2B2B2B 100%); border-radius: 16px; padding: 28px 32px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+        <div>
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 6px;">
+                <div style="width: 40px; height: 40px; background: rgba(178, 34, 34, 0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                    <i class='bx bx-cart' style="font-size: 22px; color: #B22222;"></i>
+                </div>
+                <h1 style="font-size: 22px; font-weight: 700; color: #fff; margin: 0;">Reporte de Compras</h1>
+            </div>
+            <p style="color: #A0A0A0; font-size: 14px; margin: 0;">Filtra y exporta el reporte de compras por fecha, mes o año.</p>
+        </div>
+        <i class='bx bxs-report' style="font-size: 60px; color: rgba(178,34,34,0.15);"></i>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card" style="margin-bottom: 24px;">
+        <div class="card-header" style="border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 20px;">
+            <h2 class="card-title" style="display: flex; align-items: center; gap: 8px;">
+                <i class='bx bx-filter-alt' style="color: var(--accent-color);"></i> Filtros de Búsqueda
+            </h2>
+        </div>
+
+        <form method="GET" id="formFiltros" action="{% url 'compra:reportes' %}">
+            <!-- Selector de tipo de filtro -->
+            <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
+                <label style="cursor: pointer;">
+                    <input type="radio" name="tipo_filtro" value="rango" id="filtro_rango"
+                        {% if tipo_filtro == 'rango' %}checked{% endif %}
+                        onchange="mostrarFiltro(this.value)"
+                        style="display: none;">
+                    <span id="tab_rango" class="filtro-tab {% if tipo_filtro == 'rango' %}filtro-tab-active{% endif %}">
+                        <i class='bx bx-calendar-range'></i> Rango de Fechas
+                    </span>
+                </label>
+                <label style="cursor: pointer;">
+                    <input type="radio" name="tipo_filtro" value="mes" id="filtro_mes"
+                        {% if tipo_filtro == 'mes' %}checked{% endif %}
+                        onchange="mostrarFiltro(this.value)"
+                        style="display: none;">
+                    <span id="tab_mes" class="filtro-tab {% if tipo_filtro == 'mes' %}filtro-tab-active{% endif %}">
+                        <i class='bx bx-calendar'></i> Por Mes
+                    </span>
+                </label>
+                <label style="cursor: pointer;">
+                    <input type="radio" name="tipo_filtro" value="anio" id="filtro_anio"
+                        {% if tipo_filtro == 'anio' %}checked{% endif %}
+                        onchange="mostrarFiltro(this.value)"
+                        style="display: none;">
+                    <span id="tab_anio" class="filtro-tab {% if tipo_filtro == 'anio' %}filtro-tab-active{% endif %}">
+                        <i class='bx bx-calendar-star'></i> Por Año
+                    </span>
+                </label>
+            </div>
+
+            <!-- Panel: Rango de Fechas -->
+            <div id="panel_rango" class="filtro-panel" style="{% if tipo_filtro != 'rango' %}display: none;{% endif %}">
+                <div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end;">
+                    <div class="form-group" style="margin: 0; flex: 1; min-width: 160px;">
+                        <label for="fecha_desde">Desde:</label>
+                        <input type="date" id="fecha_desde" name="fecha_desde"
+                            value="{{ request.GET.fecha_desde }}"
+                            style="width:100%; padding: 10px; border: 1px solid #d0d0d0; border-radius: 8px; font-size: 14px;">
+                    </div>
+                    <div class="form-group" style="margin: 0; flex: 1; min-width: 160px;">
+                        <label for="fecha_hasta">Hasta:</label>
+                        <input type="date" id="fecha_hasta" name="fecha_hasta"
+                            value="{{ request.GET.fecha_hasta }}"
+                            style="width:100%; padding: 10px; border: 1px solid #d0d0d0; border-radius: 8px; font-size: 14px;">
+                    </div>
+                    <button type="submit" class="btn-primary" style="height: 42px; padding: 0 24px;">
+                        <i class='bx bx-search'></i> Buscar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Panel: Por Mes -->
+            <div id="panel_mes" class="filtro-panel" style="{% if tipo_filtro != 'mes' %}display: none;{% endif %}">
+                <div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end;">
+                    <div class="form-group" style="margin: 0; min-width: 160px;">
+                        <label for="mes">Mes:</label>
+                        <select id="mes" name="mes" style="width:100%; padding: 10px; border: 1px solid #d0d0d0; border-radius: 8px; font-size: 14px;">
+                            {% for m_num, m_nom in meses %}
+                            <option value="{{ m_num }}" {% if request.GET.mes == m_num|stringformat:"s" %}selected{% endif %}>{{ m_nom }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin: 0; min-width: 130px;">
+                        <label for="anio_mes">Año:</label>
+                        <select id="anio_mes" name="anio_mes" style="width:100%; padding: 10px; border: 1px solid #d0d0d0; border-radius: 8px; font-size: 14px;">
+                            {% for a in anios_disponibles %}
+                            <option value="{{ a }}" {% if request.GET.anio_mes == a|stringformat:"s" %}selected{% endif %}>{{ a }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-primary" style="height: 42px; padding: 0 24px;">
+                        <i class='bx bx-search'></i> Buscar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Panel: Por Año -->
+            <div id="panel_anio" class="filtro-panel" style="{% if tipo_filtro != 'anio' %}display: none;{% endif %}">
+                <div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end;">
+                    <div class="form-group" style="margin: 0; min-width: 160px;">
+                        <label for="anio">Año:</label>
+                        <select id="anio" name="anio" style="width:100%; padding: 10px; border: 1px solid #d0d0d0; border-radius: 8px; font-size: 14px;">
+                            {% for a in anios_disponibles %}
+                            <option value="{{ a }}" {% if request.GET.anio == a|stringformat:"s" %}selected{% endif %}>{{ a }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-primary" style="height: 42px; padding: 0 24px;">
+                        <i class='bx bx-search'></i> Buscar
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Resultados -->
+    {% if compras is not None %}
+    <div class="card">
+        <div class="card-header">
+            <div>
+                <h2 class="card-title">Resultados</h2>
+                <p style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">
+                    {{ compras|length }} compra{{ compras|length|pluralize:"s" }} encontrada{{ compras|length|pluralize:"s" }}
+                    &mdash; Total: <strong style="color: var(--accent-color);">Bs. {{ total_sum|floatformat:2 }}</strong>
+                </p>
+            </div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <a href="{% url 'compra:reporte_pdf' %}?{{ request.GET.urlencode }}"
+                   class="btn-danger" style="text-decoration: none; padding: 10px 15px; border-radius: 8px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px;">
+                    <i class='bx bxs-file-pdf'></i> Exportar PDF
+                </a>
+                <a href="{% url 'compra:reporte_excel' %}?{{ request.GET.urlencode }}"
+                   class="btn-primary" style="background-color: #16A34A; text-decoration: none; padding: 10px 15px; border-radius: 8px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px;">
+                    <i class='bx bxs-spreadsheet'></i> Exportar Excel
+                </a>
+            </div>
+        </div>
+
+        {% if compras %}
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>N° Compra</th>
+                        <th>Proveedor</th>
+                        <th>Comprador</th>
+                        <th>Fecha</th>
+                        <th>Observación</th>
+                        <th style="text-align: right;">Total (Bs)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in compras %}
+                    <tr>
+                        <td style="font-family: monospace; font-size: 12px; color: var(--text-secondary);">{{ c.id_compra|truncatechars:18 }}…</td>
+                        <td>{{ c.proveedor.nombre }}</td>
+                        <td>{{ c.usuario.nombre }} {{ c.usuario.apellido }}</td>
+                        <td>{{ c.fecha|date:"d/m/Y" }}</td>
+                        <td style="max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ c.observacion|default:"-" }}</td>
+                        <td style="text-align: right; font-weight: 600;">Bs. {{ c.total|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="5" style="text-align: right; font-weight: 700; padding: 16px 10px; font-size: 15px;">TOTAL GENERAL:</td>
+                        <td style="text-align: right; font-weight: 700; font-size: 15px; color: var(--accent-color);">Bs. {{ total_sum|floatformat:2 }}</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
+            <i class='bx bx-search-alt' style="font-size: 48px; margin-bottom: 12px; color: var(--border-color);"></i>
+            <p style="font-size: 15px;">No se encontraron compras con los filtros seleccionados.</p>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.filtro-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 18px;
+    border-radius: 8px;
+    border: 1.5px solid var(--border-color);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    background: #fff;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+.filtro-tab:hover {
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+}
+.filtro-tab-active {
+    background: var(--accent-color);
+    border-color: var(--accent-color);
+    color: #fff !important;
+}
+.filtro-panel {
+    background: #F8FAFC;
+    border-radius: 10px;
+    padding: 20px;
+    border: 1px solid var(--border-color);
+    animation: fadeIn 0.2s ease;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
+
+<script>
+function mostrarFiltro(tipo) {
+    document.querySelectorAll('.filtro-panel').forEach(p => p.style.display = 'none');
+    document.querySelectorAll('.filtro-tab').forEach(t => t.classList.remove('filtro-tab-active'));
+    const panel = document.getElementById('panel_' + tipo);
+    if (panel) panel.style.display = 'block';
+    const tab = document.getElementById('tab_' + tipo);
+    if (tab) tab.classList.add('filtro-tab-active');
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    const tipoActivo = "{{ tipo_filtro }}";
+    if (tipoActivo) mostrarFiltro(tipoActivo);
+});
+</script>
+{% endblock %}

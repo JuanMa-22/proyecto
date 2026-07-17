@@ -1,0 +1,139 @@
+{% extends 'layout/base.html' %}
+{% load l10n %}
+
+{% block content %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<div class="dashboard-container">
+    <div class="card" style="max-width: 600px; margin: 0 auto;">
+        <div class="card-header">
+            <h2 class="card-title">Configurar Nueva Empresa</h2>
+        </div>
+
+        <div style="padding: 20px;">
+            {% if messages %}
+                <div style="margin-bottom: 20px;">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}" style="padding: 10px; border-radius: 4px; margin-bottom: 10px;
+                            {% if message.tags == 'success' %} background-color: rgba(46, 204, 113, 0.15); color: var(--green-color); border: 1px solid var(--green-color);
+                            {% else %} background-color: rgba(231, 76, 60, 0.15); color: var(--red-color); border: 1px solid var(--red-color); {% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <form action="{% url 'empresa:crear' %}" method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label>Nombre de la Empresa</label>
+                    <input type="text" name="nombre" value="{{ datos.nombre|default:'' }}" required 
+                           pattern="^[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s\.\,\-\&]+$" 
+                           title="Solo se permiten letras, números y signos comunes (.,-&)">
+                </div>
+
+                <div class="form-group" style="display: flex; gap: 15px;">
+                    <div style="flex: 1;">
+                        <label>NIT / Identificación Tributaria</label>
+                        <input type="text" name="nit" value="{{ datos.nit|default:'' }}" required 
+                               pattern="^[0-9]+$" title="Solo se permiten números" inputmode="numeric">
+                    </div>
+                    <div style="flex: 1;">
+                        <label>Ciudad</label>
+                        <input type="text" name="ciudad" value="{{ datos.ciudad|default:ciudad_defecto }}" required 
+                               pattern="^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$" title="Solo se permiten letras">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Dirección Física</label>
+                    <input type="text" name="direccion" value="{{ datos.direccion|default:'' }}" required>
+                </div>
+
+                <div class="form-group" style="display: flex; gap: 15px;">
+                    <div style="flex: 1;">
+                        <label>Teléfono / Celular</label>
+                        <input type="text" name="telefono" value="{{ datos.telefono|default:'' }}" required 
+                               pattern="^[0-9\+\-\s]+$" title="Solo se permiten números, espacios y signos + o -">
+                    </div>
+                    <div style="flex: 1;">
+                        <label>Correo Electrónico</label>
+                        <input type="email" name="email" value="{{ datos.email|default:'' }}" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Enlace de Google Maps (Compartir)</label>
+                    <input type="url" name="google_maps_link" value="{{ datos.google_maps_link|default:'' }}" placeholder="https://maps.app.goo.gl/... o https://google.com/maps/...">
+                </div>
+
+                <div class="form-group">
+                    <label>Seleccionar Ubicación en el Mapa</label>
+                    <div id="mapa-selector-crear" style="height: 250px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 10px; z-index: 1;"></div>
+                    <small style="color: var(--text-secondary);">Haga clic en el mapa o arrastre el marcador para rellenar las coordenadas automáticamente.</small>
+                </div>
+
+                <div class="form-group" style="display: flex; gap: 15px;">
+                    <div style="flex: 1;">
+                        <label>Latitud</label>
+                        <input type="number" step="0.000000000000001" name="latitud" value="{{ datos.latitud|unlocalize|default:'' }}" placeholder="Ej: -16.498843">
+                    </div>
+                    <div style="flex: 1;">
+                        <label>Longitud</label>
+                        <input type="number" step="0.000000000000001" name="longitud" value="{{ datos.longitud|unlocalize|default:'' }}" placeholder="Ej: -68.135124">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Logo de la Empresa</label>
+                    <input type="file" name="logo" accept="image/*">
+                    <small style="color: var(--text-secondary); display: block; margin-top: 5px;">Se recomienda una imagen cuadrada o rectangular con fondo transparente.</small>
+                </div>
+
+                <div style="text-align: right; margin-top: 30px; display: flex; justify-content: flex-end; gap: 10px;">
+                    <a href="{% url 'empresa:index' %}" class="btn-secondary" style="text-decoration: none; display: inline-block; padding: 10px 20px; border-radius: 4px; text-align: center;">Cancelar</a>
+                    <button type="submit" class="btn-primary" style="padding: 10px 20px;">Guardar Empresa</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Coordenadas por defecto (La Paz, Bolivia)
+        let lat = parseFloat(document.querySelector('[name="latitud"]').value) || -16.498843;
+        let lng = parseFloat(document.querySelector('[name="longitud"]').value) || -68.135124;
+        
+        const mapDiv = document.getElementById('mapa-selector-crear');
+        if (!mapDiv) return;
+        
+        const mapCrear = L.map('mapa-selector-crear').setView([lat, lng], 15);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap'
+        }).addTo(mapCrear);
+        
+        // Crear pin marcador arrastrable
+        const markerCrear = L.marker([lat, lng], { draggable: true }).addTo(mapCrear);
+        
+        // Al arrastrar el pin, actualizar inputs
+        markerCrear.on('dragend', function (e) {
+            const position = markerCrear.getLatLng();
+            document.querySelector('[name="latitud"]').value = position.lat.toFixed(15);
+            document.querySelector('[name="longitud"]').value = position.lng.toFixed(15);
+        });
+        
+        // Al hacer clic en el mapa, mover pin y actualizar inputs
+        mapCrear.on('click', function (e) {
+            const latlng = e.latlng;
+            markerCrear.setLatLng(latlng);
+            document.querySelector('[name="latitud"]').value = latlng.lat.toFixed(15);
+            document.querySelector('[name="longitud"]').value = latlng.lng.toFixed(15);
+        });
+    });
+</script>
+{% endblock %}

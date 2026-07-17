@@ -1,0 +1,135 @@
+{% extends 'layout/base.html' %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Listado de Compras</h2>
+            <button class="btn-primary" onclick="abrirModal('modalCrearCompra')">
+                <i class='bx bx-plus'></i> Nueva Compra
+            </button>
+        </div>
+
+        <!-- Include Modal Crear -->
+        {% include 'compra/crear.html' %}
+
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Fecha</th>
+                        <th>Proveedor</th>
+                        <th>Usuario</th>
+                        <th>Tipo Cambio</th>
+                        <th>Total</th>
+                        <th>Estado</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for compra in compras %}
+                    <tr>
+                        <td>{{ compra.id_compra|truncatechars:10 }}</td>
+                        <td>{{ compra.fecha }}</td>
+                        <td>{{ compra.proveedor.nombre }}</td>
+                        <td>{{ compra.usuario.nombre }} {{ compra.usuario.apellido }}</td>
+                        <td>Bs. {{ compra.tipo_cambio_valor }}</td>
+                        <td>USD {{ compra.total }} (Bs. {{ compra.total_bs|floatformat:2 }})</td>
+                        <td>
+                            {% if compra.estado %}
+                                <span class="status entregado">Completada</span>
+                            {% else %}
+                                <span class="status cancelado">Anulada</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <button onclick="abrirModal('modalVerCompra{{ compra.id_compra }}')" class="btn-icon" title="Ver Detalle" style="background: none; border: none; cursor: pointer; padding: 0; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle;">
+                                <i class='bx bx-show'></i>
+                            </button>
+                            {% include 'compra/ver_compras.html' with compra=compra %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        let table = new DataTable('.data-table', {
+            language: {
+                processing: "Procesando...",
+                search: "Buscar:",
+                lengthMenu: "Mostrar _MENU_ registros",
+                info: "Mostrando de _START_ a _END_ de _TOTAL_ registros",
+                infoEmpty: "Mostrando 0 a 0 de 0 registros",
+                infoFiltered: "(filtrado de _MAX_ registros en total)",
+                infoPostFix: "",
+                loadingRecords: "Cargando...",
+                zeroRecords: "No se encontraron resultados",
+                emptyTable: "Ningún dato disponible en esta tabla",
+                paginate: {
+                    first: "Primero",
+                    previous: "Anterior",
+                    next: "Siguiente",
+                    last: "Último"
+                },
+                aria: {
+                    sortAscending: ": Activar para ordenar la columna de manera ascendente",
+                    sortDescending: ": Activar para ordenar la columna de manera descendente"
+                }
+            }
+        });
+
+        {% if messages %}
+            {% for message in messages %}
+                Swal.fire({
+                    position: "top-end",
+                    icon: "{{ message.tags }}" === "error" ? "error" : "success",
+                    title: "{{ message }}",
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+            {% endfor %}
+        {% endif %}
+    });
+
+    function pedirConfirmacion(formEl, nombre) {
+        Swal.fire({
+            title: "¿Estás seguro?",
+            text: "¡No podrás revertir esto!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Sí, desactivar!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                formEl.submit();
+            }
+        });
+    }
+
+    function pedirConfirmacionActivar(formEl, nombre) {
+        Swal.fire({
+            title: "¿Estás seguro?",
+            text: "¡Esto reactivará el registro '" + nombre + "'!",
+            icon: "info",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Sí, activar!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                formEl.submit();
+            }
+        });
+    }
+</script>
+{% endblock %}

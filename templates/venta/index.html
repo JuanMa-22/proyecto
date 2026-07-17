@@ -1,0 +1,136 @@
+{% extends 'layout/base.html' %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Listado de Ventas</h2>
+            <button class="btn-primary" onclick="abrirModal('modalCrearVenta')">
+                <i class='bx bx-plus'></i> Nueva Venta
+            </button>
+        </div>
+
+        <!-- Include Modal Crear -->
+        {% include 'venta/crear.html' %}
+
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Fecha</th>
+                        <th>Cliente</th>
+                        <th>Usuario</th>
+                        <th>Total</th>
+                        <th>Estado</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for venta in ventas %}
+                    <tr>
+                        <td>{{ venta.id_venta|truncatechars:10 }}</td>
+                        <td>{{ venta.fecha }}</td>
+                        <td>{{ venta.cliente.nombre }} {{ venta.cliente.apellido }}</td>
+                        <td>{{ venta.usuario.nombre }} {{ venta.usuario.apellido }}</td>
+                        <td>Bs. {{ venta.total }}</td>
+                        <td>
+                            {% if venta.estado %}
+                                <span class="status entregado">Completada</span>
+                            {% else %}
+                                <span class="status cancelado">Anulada</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <button onclick="abrirModal('modalVerVenta{{ venta.id_venta }}')" class="btn-icon" title="Ver Detalle" style="background: none; border: none; cursor: pointer; padding: 0; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle;">
+                                <i class='bx bx-show'></i>
+                            </button>
+                            <a href="{% url 'venta:recibo_venta' venta.id_venta %}" target="_blank" class="btn-icon" title="Imprimir Recibo">
+                                <i class='bx bx-printer'></i>
+                            </a>
+                            {% include 'venta/ver_ventas.html' with venta=venta %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        let table = new DataTable('.data-table', {
+            language: {
+                processing: "Procesando...",
+                search: "Buscar:",
+                lengthMenu: "Mostrar _MENU_ registros",
+                info: "Mostrando de _START_ a _END_ de _TOTAL_ registros",
+                infoEmpty: "Mostrando 0 a 0 de 0 registros",
+                infoFiltered: "(filtrado de _MAX_ registros en total)",
+                infoPostFix: "",
+                loadingRecords: "Cargando...",
+                zeroRecords: "No se encontraron resultados",
+                emptyTable: "Ningún dato disponible en esta tabla",
+                paginate: {
+                    first: "Primero",
+                    previous: "Anterior",
+                    next: "Siguiente",
+                    last: "Último"
+                },
+                aria: {
+                    sortAscending: ": Activar para ordenar la columna de manera ascendente",
+                    sortDescending: ": Activar para ordenar la columna de manera descendente"
+                }
+            }
+        });
+
+        {% if messages %}
+            {% for message in messages %}
+                Swal.fire({
+                    position: "top-end",
+                    icon: "{{ message.tags }}" === "error" ? "error" : "success",
+                    title: "{{ message }}",
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+            {% endfor %}
+        {% endif %}
+    });
+
+    function pedirConfirmacion(formEl, nombre) {
+        Swal.fire({
+            title: "¿Estás seguro?",
+            text: "¡No podrás revertir esto!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Sí, desactivar!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                formEl.submit();
+            }
+        });
+    }
+
+    function pedirConfirmacionActivar(formEl, nombre) {
+        Swal.fire({
+            title: "¿Estás seguro?",
+            text: "¡Esto reactivará el registro '" + nombre + "'!",
+            icon: "info",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Sí, activar!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                formEl.submit();
+            }
+        });
+    }
+</script>
+{% endblock %}

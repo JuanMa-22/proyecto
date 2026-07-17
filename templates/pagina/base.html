@@ -1,0 +1,105 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sismeing | Domina el Juego{% endblock %}</title>
+    
+    <meta name="description" content="{% block meta_description %}Sismeing - Soluciones integrales de hardware y servicio técnico en Bolivia. Armado de PCs de alto rendimiento, mantenimiento técnico especializado y asesoría tecnológica personalizada.{% endblock %}">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="{% block canonical_url %}{{ canonical_url }}{% endblock %}">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ canonical_url }}">
+    <meta property="og:title" content="{% block og_title %}Sismeing | Domina el Juego{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Sismeing - Soluciones integrales de hardware y servicio técnico en Bolivia. Armado de PCs de alto rendimiento y mantenimiento técnico.{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'img/logo.png' %}{% endblock %}">
+    <meta property="og:site_name" content="Sismeing">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="{{ canonical_url }}">
+    <meta name="twitter:title" content="{% block twitter_title %}Sismeing | Domina el Juego{% endblock %}">
+    <meta name="twitter:description" content="{% block twitter_description %}Sismeing - Soluciones integrales de hardware y servicio técnico en Bolivia. Armado de PCs de alto rendimiento y mantenimiento técnico.{% endblock %}">
+    <meta name="twitter:image" content="{% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'img/logo.png' %}{% endblock %}">
+
+    <link rel="stylesheet" href="{% static 'css/pagina.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <nav>
+        <div class="logo">
+            <a href="{% url 'web:inicio_pagina' %}">
+                <img src="{% static 'img/logo.png' %}" alt="Sismeing Logo">
+            </a>
+        </div>
+        
+        <ul class="nav-links">
+            <li><a href="{% url 'web:inicio_pagina' %}">Inicio</a></li>
+            <li><a href="{% url 'web:nosotros_pagina' %}">Nosotros</a></li>
+            <li><a href="{% url 'web:servicios_pagina' %}">Servicios</a></li>
+            <li><a href="{% url 'web:inicio_pagina' %}#productos">Productos</a></li>
+            <li><a href="{% url 'web:ubicacion_pagina' %}">Ubicación</a></li>
+        </ul>
+
+        <form action="{% url 'web:inicio_pagina' %}" method="GET" class="search-bar">
+            <input type="text" name="q" placeholder="Buscar productos..." value="{{ query|default:'' }}">
+            <button type="submit" style="background: none; border: none; cursor: pointer; color: rgba(255,255,255,0.5);">
+                <i class="fas fa-search"></i>
+            </button>
+        </form>
+
+        <div class="menu-toggle" id="mobile-menu">
+            <i class="fas fa-bars"></i>
+        </div>
+    </nav>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <div class="logo" style="margin-bottom: 1.5rem;">
+            <img src="{% static 'img/logo.png' %}" alt="Sismeing Logo" style="height: 50px;">
+        </div>
+        <p>&copy; 2026 Sismeing. Todos los derechos reservados.</p>
+        <div style="margin-top: 1rem; font-size: 1.5rem; display: flex; justify-content: center; gap: 1rem;">
+            <a href="#" style="color: white;"><i class="fab fa-facebook"></i></a>
+            <a href="#" style="color: white;"><i class="fab fa-instagram"></i></a>
+            <a href="#" style="color: white;"><i class="fab fa-whatsapp"></i></a>
+        </div>
+    </footer>
+
+    <script>
+        const menuToggle = document.getElementById('mobile-menu');
+        const navLinks = document.querySelector('.nav-links');
+
+        menuToggle.addEventListener('click', () => {
+            navLinks.classList.toggle('mobile-active');
+            menuToggle.querySelector('i').classList.toggle('fa-bars');
+            menuToggle.querySelector('i').classList.toggle('fa-times');
+        });
+    </script>
+    {% if messages %}
+        <script src="{% static 'js/sweetalert2.min.js' %}"></script>
+        <link rel="stylesheet" href="{% static 'css/sweetalert2.min.css' %}">
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                {% for message in messages %}
+                    Swal.fire({
+                        title: 'Confirmación',
+                        text: '{{ message }}',
+                        icon: '{{ message.tags }}' === 'error' ? 'error' : 'success',
+                        confirmButtonColor: '#FF4D00'
+                    });
+                {% endfor %}
+            });
+        </script>
+    {% endif %}
+    {% block extra_js %}{% endblock %}
+    {% include 'agenteConversacional.html' %}
+</body>
+</html>

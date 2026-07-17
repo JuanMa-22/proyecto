@@ -1,0 +1,59 @@
+<div id="modalCrearUsuario" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="cerrarModal('modalCrearUsuario')">&times;</span>
+        <h3 class="card-title" style="margin-bottom: 20px;">Crear Usuario</h3>
+        
+        <form action="{% url 'usuario:crear' %}" method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>Nombre</label>
+                <input type="text" name="nombre" required pattern="^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$" title="Solo se permiten letras">
+            </div>
+            <div class="form-group">
+                <label>Apellido</label>
+                <input type="text" name="apellido" required pattern="^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$" title="Solo se permiten letras">
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label>Teléfono</label>
+                <input type="text" name="telefono" required pattern="^[0-9]+$" title="Solo se permiten números" inputmode="numeric">
+            </div>
+            <div class="form-group">
+                <label>Dirección</label>
+                <input type="text" name="direccion" required>
+            </div>
+            <div class="form-group">
+                <label>CI</label>
+                <input type="text" name="ci" required pattern="^[0-9]+$" title="Solo se permiten números" inputmode="numeric">
+            </div>
+            <div class="form-group">
+                <label>Usuario</label>
+                <input type="text" name="usuario" required>
+            </div>
+            <div class="form-group">
+                <label>Contraseña</label>
+                <input type="password" name="password" required 
+                       pattern="^(?=.*[a-zA-ZáéíóúÁÉÍÓÚñÑ])(?=.*\d).{8,}$" 
+                       title="La contraseña debe tener al menos 8 caracteres y contener letras y números.">
+            </div>
+
+            <div class="form-group">
+                <label>Rol</label>
+                <select name="rol" required>
+                    <option value="" disabled selected>-- Selecciona un rol --</option>
+                    {% for r in roles %}
+                        <option value="{{ r.id_rol }}">{{ r.nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+                    
+            <div style="text-align: right; margin-top: 25px;">
+                <button type="button" class="btn-secondary" onclick="cerrarModal('modalCrearUsuario')">Cancelar</button>
+                <button type="submit" class="btn-primary">Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>

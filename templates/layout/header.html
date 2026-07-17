@@ -1,0 +1,184 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sismeing - Panel Administrativo</title>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="{% static 'css/dataTables.dataTables.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/sweetalert2.min.css' %}">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=1.6">
+</head>
+<body>
+
+    <aside class="sidebar" id="sidebar">
+        <div class="logo-container">
+            <img src="{% static 'img/logo.png' %}" alt="Sismeing">
+        </div>
+
+
+        <nav class="nav-menu">
+            <div class="nav-title">Menú Principal</div>
+
+            <!-- Dashboard: todos los roles -->
+            <a href="{% url 'web:dashboard' %}" class="nav-item">
+                <i class='bx bxs-dashboard'></i> Dashboard
+            </a>
+
+            <!-- Productos: todos los roles -->
+            <a href="{% url 'producto:index' %}" class="nav-item">
+                <i class='bx bx-box'></i> Productos
+            </a>
+            <a href="{% url 'inventario:index' %}" class="nav-item">
+                <i class='bx bx-list-check'></i> Inventario
+            </a>
+            {% if request.session.usuario_rol|lower != 'vendedor' %}
+            <a href="{% url 'lote:index' %}" class="nav-item">
+                <i class='bx bx-layer'></i> Lotes
+            </a>
+            {% endif %}
+
+            <!-- Categorías: solo administrador -->
+            {% if request.session.usuario_rol|lower != 'vendedor' %}
+            <a href="{% url 'categoria:index' %}" class="nav-item">
+                <i class='bx bx-category'></i> Categorías
+            </a>
+            {% endif %}
+
+            <!-- Marcas: solo administrador -->
+            {% if request.session.usuario_rol|lower != 'vendedor' %}
+            <a href="{% url 'marca:index' %}" class="nav-item">
+                <i class='bx bx-purchase-tag-alt'></i> Marcas
+            </a>
+            {% endif %}
+
+            <!-- Clientes: todos los roles -->
+            <a href="{% url 'cliente:index' %}" class="nav-item">
+                <i class='bx bxs-user-detail'></i> Clientes
+            </a>
+
+            <!-- Proveedores: solo administrador -->
+            {% if request.session.usuario_rol|lower != 'vendedor' %}
+            <a href="{% url 'proveedor:index' %}" class="nav-item">
+                <i class='bx bxs-truck'></i> Proveedores
+            </a>
+            {% endif %}
+
+            <!-- ── Sección Transacciones ── -->
+            <div class="nav-section-title">Transacciones</div>
+
+            <!-- Compras: solo administrador -->
+            {% if request.session.usuario_rol|lower != 'vendedor' %}
+            <a href="{% url 'compra:index' %}" class="nav-item">
+                <i class='bx bx-cart'></i> Compras
+            </a>
+            {% endif %}
+
+            <!-- Ventas: todos los roles -->
+            <a href="{% url 'venta:index' %}" class="nav-item">
+                <i class='bx bx-line-chart'></i> Ventas
+            </a>
+
+            <!-- Movimientos: todos los roles -->
+            <a href="{% url 'movimiento:index' %}" class="nav-item">
+                <i class='bx bx-transfer'></i> Movimientos
+            </a>
+
+            <!-- ── Sección Administración: solo administrador ── -->
+            {% if request.session.usuario_rol|lower != 'vendedor' %}
+            <div class="nav-section-title">Administración</div>
+            <a href="{% url 'usuario:index' %}" class="nav-item">
+                <i class='bx bx-group'></i> Usuarios
+            </a>
+            <a href="{% url 'rol:index' %}" class="nav-item">
+                <i class='bx bx-id-card'></i> Roles
+            </a>
+            <a href="{% url 'tipoCambio:index' %}" class="nav-item">
+                <i class='bx bx-dollar-circle'></i> Tipo de Cambio
+            </a>
+            <a href="{% url 'tipoMovimiento:index' %}" class="nav-item">
+                <i class='bx bx-list-ul'></i> Tipo de Movimiento
+            </a>
+            <a href="{% url 'historialPrecio:index' %}" class="nav-item">
+                <i class='bx bx-history'></i> Historial de Precios
+            </a>
+            <a href="{% url 'empresa:index' %}" class="nav-item">
+                <i class='bx bx-buildings'></i> Datos de la Empresa
+            </a>
+            {% endif %}
+
+            <!-- ── Sección Reportes ── -->
+            <div class="nav-section-title">Reportes</div>
+
+            <!-- Dropdown Reportes -->
+            <div class="nav-dropdown" id="navDropdownReportes">
+                <button class="nav-item nav-dropdown-toggle" onclick="toggleNavDropdown('reportesMenu')" id="btnReportes">
+                    <i class='bx bx-bar-chart-alt-2'></i>
+                    <span style="flex: 1;">Reportes</span>
+                    <i class='bx bx-chevron-down nav-chevron' id="chevronReportes"></i>
+                </button>
+                <div class="nav-submenu" id="reportesMenu">
+                    <a href="{% url 'venta:reportes' %}" class="nav-subitem">
+                        <i class='bx bx-line-chart'></i> Reporte Venta
+                    </a>
+                    {% if request.session.usuario_rol|lower != 'vendedor' %}
+                    <a href="{% url 'compra:reportes' %}" class="nav-subitem">
+                        <i class='bx bx-cart'></i> Reporte Compra
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <a href="{% url 'usuario:logout' %}" class="nav-item" style="margin-top: 10px;">
+                <i class='bx bx-log-out'></i> Cerrar sesión
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Contenido Principal -->
+    <main class="main-content">
+        <!-- Cabecera Superior -->
+        <header>
+            <div class="header-left">
+                <button class="menu-toggle" id="menu-toggle">
+                    <i class='bx bx-menu'></i>
+                </button>
+                <div class="search-bar">
+                    <input type="text" placeholder="Buscar...">
+                    <i class='bx bx-search'></i>
+                </div>
+            </div>
+            <div class="header-right">
+                <details class="admin-dropdown-container">
+                    <summary class="admin-dropdown" style="list-style: none; outline: none;">
+                        <div class="admin-avatar">
+                            <i class='bx bx-user'></i>
+                        </div>
+                        <div class="admin-details">
+                            <span class="admin-name">
+                                {% if request.session.usuario_nombre %}
+                                    {{ request.session.usuario_nombre }}
+                                {% else %}
+                                    Usuario
+                                {% endif %}
+                            </span>
+                            <span class="admin-role">
+                                {% if request.session.usuario_rol %}
+                                    {{ request.session.usuario_rol }}
+                                {% else %}
+                                    Invitado
+                                {% endif %}
+                            </span>
+                        </div>
+                        <i class='bx bx-chevron-down admin-chevron'></i>
+                    </summary>
+                    <div class="admin-dropdown-menu" id="adminDropdownMenu">
+                        <a href="{% url 'usuario:logout' %}" class="dropdown-item">
+                            <i class='bx bx-log-out'></i> Cerrar sesión
+                        </a>
+                    </div>
+                </details>
+            </div>
+        </header>

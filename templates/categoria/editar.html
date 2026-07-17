@@ -1,0 +1,19 @@
+<div id="modalEditar{{ item.id_categoria }}" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="cerrarModal('modalEditar{{ item.id_categoria }}')">&times;</span>
+        <h3 class="card-title" style="margin-bottom: 20px;">Editar Categoría</h3>
+        
+        <form action="{% url 'categoria:editar' item.id_categoria %}" method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>Nombre</label>
+                <input type="text" name="nombre" value="{{ item.nombre }}" required>
+            </div>
+           
+            <div style="text-align: right; margin-top: 25px;">
+                <button type="button" class="btn-secondary" onclick="cerrarModal('modalEditar{{ item.id_categoria }}')">Cancelar</button>
+                <button type="submit" class="btn-primary">Guardar Cambios</button>
+            </div>
+        </form>
+    </div>
+</div>

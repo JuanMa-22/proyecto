@@ -1,0 +1,93 @@
+<div id="modalDetalleLote{{ lote.id_lote }}" class="modal">
+    <div class="modal-content" style="max-width: 650px; width: 95%;">
+        <span class="close" onclick="cerrarModal('modalDetalleLote{{ lote.id_lote }}')">&times;</span>
+        
+        <h3 class="card-title" style="margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+            <i class='bx bx-detail' style="color: var(--accent-color); font-size: 20px;"></i>
+            Detalle del Lote
+        </h3>
+
+        <!-- Info del Lote -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; text-align: left;">
+            
+            <div style="background-color: var(--border-color); background-opacity: 0.15; padding: 12px; border-radius: 8px; border-left: 4px solid var(--accent-color); grid-column: span 2;">
+                <h4 style="color: var(--text-primary); margin: 0 0 4px 0; font-size: 15px;">{{ lote.producto.nombre }}</h4>
+                <p style="color: var(--text-secondary); font-size: 12px; margin: 0;">
+                    Categoría: {{ lote.producto.categoria.nombre }} &mdash; Marca: {{ lote.producto.marca.nombre }}
+                </p>
+            </div>
+
+            <div style="border: 1px solid var(--border-color); padding: 12px; border-radius: 8px;">
+                <p style="margin: 0 0 5px 0; font-size: 13px; color: var(--text-secondary);">Origen:</p>
+                <p style="margin: 0 0 4px 0; font-size: 13px;"><strong>Fecha Entrada:</strong> {{ lote.fecha_entrada|date:"d/m/Y" }}</p>
+                <p style="margin: 0 0 4px 0; font-size: 13px;"><strong>Proveedor:</strong> {% if lote.proveedor %}{{ lote.proveedor.nombre }}{% else %}—{% endif %}</p>
+                <p style="margin: 0; font-size: 13px;"><strong>Costo (USD):</strong> $ {{ lote.precio_costo_usd|floatformat:2 }}</p>
+            </div>
+
+            <div style="border: 1px solid var(--border-color); padding: 12px; border-radius: 8px;">
+                <p style="margin: 0 0 5px 0; font-size: 13px; color: var(--text-secondary);">Stock & Estado:</p>
+                <p style="margin: 0 0 4px 0; font-size: 13px;"><strong>Cant. Inicial:</strong> {{ lote.cantidad_inicial }} u.</p>
+                <p style="margin: 0 0 4px 0; font-size: 13px;"><strong>Cant. Disponible:</strong> {{ lote.cantidad_disponible }} u.</p>
+                <p style="margin: 0; font-size: 13px;"><strong>Antigüedad:</strong> 
+                    <span style="font-weight: bold; color: {% if item.dias_totales > 730 %}var(--red-color){% elif item.dias_totales > 365 %}#d68910{% else %}var(--green-color){% endif %};">
+                        {{ item.antiguedad }}
+                    </span>
+                </p>
+            </div>
+
+            <!-- Progreso Consumo -->
+            <div style="grid-column: span 2; border: 1px solid var(--border-color); padding: 12px; border-radius: 8px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 12px; color: var(--text-secondary);">
+                    <span>Progreso de Consumo:</span>
+                    <strong>{{ lote.porcentaje_consumido }}% consumido</strong>
+                </div>
+                <div style="background: var(--border-color); border-radius: 6px; height: 8px;">
+                    <div style="height: 100%; border-radius: 6px; width: {{ lote.porcentaje_consumido }}%;
+                        background: {% if lote.porcentaje_consumido == 100 %}var(--red-color){% elif lote.porcentaje_consumido > 70 %}#d68910{% else %}var(--accent-color){% endif %};
+                        transition: width 0.4s ease;"></div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Tabla de consumos -->
+        <h4 style="margin: 20px 0 10px 0; font-size: 14px; font-weight: 600; text-align: left; display: flex; align-items: center; gap: 6px;">
+            <i class='bx bx-transfer' style="color: var(--accent-color);"></i>
+            Historial de Consumos PEPS
+        </h4>
+        
+        <div style="max-height: 200px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 20px;">
+            {% if lote.consumos.all %}
+            <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                <thead>
+                    <tr style="background-color: #F8FAFC; border-bottom: 1px solid var(--border-color);">
+                        <th style="padding: 10px; font-size: 12px; color: var(--text-secondary); font-weight: 500;">Fecha</th>
+                        <th style="padding: 10px; font-size: 12px; color: var(--text-secondary); font-weight: 500; text-align: center;">Cantidad</th>
+                        <th style="padding: 10px; font-size: 12px; color: var(--text-secondary); font-weight: 500;">Venta (ID)</th>
+                        <th style="padding: 10px; font-size: 12px; color: var(--text-secondary); font-weight: 500;">Cliente</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in lote.consumos.all %}
+                    <tr style="border-bottom: 1px solid var(--border-color);">
+                        <td style="padding: 10px; font-size: 12px;">{{ c.fecha_consumo|date:"d/m/Y H:i" }}</td>
+                        <td style="padding: 10px; font-size: 12px; font-weight: 700; color: var(--accent-color); text-align: center;">{{ c.cantidad }} u.</td>
+                        <td style="padding: 10px; font-size: 12px; font-family: monospace;">{{ c.detalle_venta.venta.id_venta|stringformat:"s"|slice:":8" }}...</td>
+                        <td style="padding: 10px; font-size: 12px;">{{ c.detalle_venta.venta.cliente.nombre }} {{ c.detalle_venta.venta.cliente.apellido }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div style="text-align: center; padding: 24px; color: var(--text-secondary); font-size: 13px;">
+                <i class='bx bx-info-circle' style="font-size: 24px; opacity: 0.4; display: block; margin-bottom: 6px;"></i>
+                Este lote aún no ha tenido consumos registrados.
+            </div>
+            {% endif %}
+        </div>
+
+        <div style="text-align: right;">
+            <button type="button" class="btn-secondary" onclick="cerrarModal('modalDetalleLote{{ lote.id_lote }}')">Cerrar</button>
+        </div>
+    </div>
+</div>

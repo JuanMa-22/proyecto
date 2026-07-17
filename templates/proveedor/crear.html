@@ -1,0 +1,23 @@
+<div id="modalCrearProveedor" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="cerrarModal('modalCrearProveedor')">&times;</span>
+        <h3 class="card-title" style="margin-bottom: 20px;">Crear Proveedore</h3>
+        
+        <form action="{% url 'proveedor:crear' %}" method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>Nombre</label>
+                <input type="text" name="nombre" required pattern="^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$" title="Solo se permiten letras">
+            </div>
+            <div class="form-group">
+                <label>Teléfono</label>
+                <input type="text" name="telefono" required pattern="^[0-9]+$" title="Solo se permiten números" inputmode="numeric">
+            </div>
+            
+            <div style="text-align: right; margin-top: 25px;">
+                <button type="button" class="btn-secondary" onclick="cerrarModal('modalCrearProveedor')">Cancelar</button>
+                <button type="submit" class="btn-primary">Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>

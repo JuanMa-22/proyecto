@@ -1,0 +1,20 @@
+<div id="modalCrearRol" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="cerrarModal('modalCrearRol')">&times;</span>
+        <h3 class="card-title" style="margin-bottom: 20px;">Crear Role</h3>
+        
+        <form action="{% url 'rol:crear' %}" method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>Nombre</label>
+                <input type="text" name="nombre" required>
+            </div>
+
+            
+            <div style="text-align: right; margin-top: 25px;">
+                <button type="button" class="btn-secondary" onclick="cerrarModal('modalCrearRol')">Cancelar</button>
+                <button type="submit" class="btn-primary">Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>

@@ -1,0 +1,133 @@
+{% extends 'layout/base.html' %}
+{% load l10n %}
+
+{% block content %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<div class="dashboard-container">
+    <div class="card" style="max-width: 800px; margin: 0 auto;">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <h2 class="card-title">Información de la Empresa</h2>
+            {% if empresa %}
+                <button class="btn-primary" onclick="abrirModal('modalEditarEmpresa')">
+                    <i class='bx bx-edit-alt'></i> Editar Información
+                </button>
+            {% else %}
+                <a href="{% url 'empresa:crear' %}" class="btn-primary">
+                    <i class='bx bx-plus'></i> Registrar Empresa
+                </a>
+            {% endif %}
+        </div>
+
+        <div style="padding: 20px;">
+            {% if empresa %}
+                <div style="display: flex; gap: 30px; flex-wrap: wrap; align-items: center; justify-content: center; margin-bottom: 25px;">
+                    {% if empresa.logo %}
+                        <div style="flex: 1; min-width: 200px; text-align: center;">
+                            <img src="{{ empresa.logo.url }}" alt="Logo {{ empresa.nombre }}" style="max-width: 100%; max-height: 180px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); padding: 10px; background-color: #fff;">
+                        </div>
+                    {% else %}
+                        <div style="flex: 1; min-width: 200px; text-align: center; padding: 30px; border: 2px dashed var(--border-color); border-radius: 8px;">
+                            <i class='bx bx-image-alt' style="font-size: 60px; color: var(--text-secondary);"></i>
+                            <p style="color: var(--text-secondary); margin-top: 10px;">Sin Logo Registrado</p>
+                        </div>
+                    {% endif %}
+
+                    <div style="flex: 2; min-width: 300px;">
+                        <h3 style="color: var(--accent-color); margin-bottom: 15px; font-size: 22px;">{{ empresa.nombre }}</h3>
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td style="padding: 10px 0; font-weight: bold; color: var(--text-secondary); width: 120px;">NIT / Tax ID:</td>
+                                <td style="padding: 10px 0; color: var(--text-primary);">{{ empresa.nit }}</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td style="padding: 10px 0; font-weight: bold; color: var(--text-secondary);">Ciudad:</td>
+                                <td style="padding: 10px 0; color: var(--text-primary);">{{ empresa.ciudad }}</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td style="padding: 10px 0; font-weight: bold; color: var(--text-secondary);">Dirección:</td>
+                                <td style="padding: 10px 0; color: var(--text-primary);">{{ empresa.direccion }}</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td style="padding: 10px 0; font-weight: bold; color: var(--text-secondary);">Teléfono:</td>
+                                <td style="padding: 10px 0; color: var(--text-primary);">{{ empresa.telefono }}</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td style="padding: 10px 0; font-weight: bold; color: var(--text-secondary);">E-mail:</td>
+                                <td style="padding: 10px 0; color: var(--text-primary);">{{ empresa.email }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Vista previa del mapa Leaflet.js -->
+                {% if empresa.latitud and empresa.longitud %}
+                    <div style="margin-top: 25px; border-top: 1px solid var(--border-color); padding-top: 20px; z-index: 1;">
+                        <h3 style="color: var(--accent-color); margin-bottom: 15px; font-size: 18px;">Ubicación en el Mapa</h3>
+                        <div id="mapa-preview" style="height: 300px; border-radius: 8px; border: 1px solid var(--border-color); width: 100%;"></div>
+                        {% if empresa.google_maps_link %}
+                            <div style="margin-top: 12px; text-align: right;">
+                                <a href="{{ empresa.google_maps_link }}" target="_blank" class="btn-secondary" style="font-size: 13px; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; padding: 8px 16px;">
+                                    <i class='bx bx-map'></i> Ver en Google Maps (Navegación GPS)
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            {% else %}
+                <div style="text-align: center; padding: 50px 20px;">
+                    <i class='bx bx-buildings' style="font-size: 80px; color: var(--text-secondary); margin-bottom: 20px; display: block;"></i>
+                    <h3 style="color: var(--text-primary); margin-bottom: 10px;">Aún no se ha registrado la empresa</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 30px; max-width: 500px; margin-left: auto; margin-right: auto;">
+                        Registre la información general de su empresa (NIT, Dirección, Teléfono, Email, Logo y Ciudad) para configurar los encabezados de los reportes y documentos del sistema.
+                    </p>
+                    <a href="{% url 'empresa:crear' %}" class="btn-primary" style="padding: 12px 24px; font-size: 16px;">
+                        <i class='bx bx-plus-circle'></i> Registrar Ahora
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% if empresa %}
+    {% include 'empresa/editar.html' %}
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    $(document).ready(function() {
+        {% if messages %}
+            {% for message in messages %}
+                Swal.fire({
+                    position: "top-end",
+                    icon: "{{ message.tags }}" === "error" ? "error" : ("{{ message.tags }}" === "warning" ? "warning" : "success"),
+                    title: "{{ message }}",
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+            {% endfor %}
+        {% endif %}
+
+        // Inicializar vista previa del mapa si las coordenadas existen
+        {% if empresa.latitud and empresa.longitud %}
+            try {
+                const lat = parseFloat("{{ empresa.latitud|unlocalize }}".replace(',', '.'));
+                const lng = parseFloat("{{ empresa.longitud|unlocalize }}".replace(',', '.'));
+                const map = L.map('mapa-preview').setView([lat, lng], 15);
+                
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap'
+                }).addTo(map);
+                
+                L.marker([lat, lng]).addTo(map)
+                    .bindPopup('<b>{{ empresa.nombre }}</b><br>Ubicación registrada')
+                    .openPopup();
+            } catch (error) {
+                console.error("Error al inicializar el mapa:", error);
+            }
+        {% endif %}
+    });
+</script>
+{% endblock %}

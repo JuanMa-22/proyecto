@@ -1,0 +1,129 @@
+{% extends 'layout/base.html' %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Historial de Precios</h2>
+            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                <a href="{% url 'historialPrecio:reporte_pdf' %}" class="btn-danger" style="text-decoration: none; padding: 10px 15px; border-radius: 8px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 4px 10px rgba(178, 34, 34, 0.25);">
+                    <i class='bx bxs-file-pdf'></i> Exportar PDF
+                </a>
+                <a href="{% url 'historialPrecio:reporte_excel' %}" class="btn-primary" style="background-color: #16A34A; box-shadow: 0 4px 10px rgba(22, 163, 74, 0.25); text-decoration: none; padding: 10px 15px; border-radius: 8px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px;">
+                    <i class='bx bxs-spreadsheet'></i> Exportar Excel
+                </a>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Tipo Cambio</th>
+                        <th>Precio Compra</th>
+                        <th>Precio Venta</th>
+                        <th>Fecha Inicio</th>
+                        <th>Fecha Fin</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for hist in historialPrecios %}
+                    <tr>
+                        <td>{{ hist.producto.nombre }}</td>
+                        <td>Bs. {{ hist.tipo_cambio.valor|floatformat:2 }}</td>
+                        <td>$ {{ hist.precio_compra|floatformat:2 }}</td>
+                        <td>Bs. {{ hist.precio_venta|floatformat:2 }}</td>
+                        <td>{{ hist.fecha_inicio|date:"d/m/Y H:i" }}</td>
+                        <td>{{ hist.fecha_fin|date:"d/m/Y H:i"|default:"-" }}</td>
+                        <td>
+                            {% if hist.estado %}
+                                <span class="status entregado">Vigente</span>
+                            {% else %}
+                                <span class="status cancelado">Expirado</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        let table = new DataTable('.data-table', {
+            language: {
+                processing: "Procesando...",
+                search: "Buscar:",
+                lengthMenu: "Mostrar _MENU_ registros",
+                info: "Mostrando de _START_ a _END_ de _TOTAL_ registros",
+                infoEmpty: "Mostrando 0 a 0 de 0 registros",
+                infoFiltered: "(filtrado de _MAX_ registros en total)",
+                infoPostFix: "",
+                loadingRecords: "Cargando...",
+                zeroRecords: "No se encontraron resultados",
+                emptyTable: "Ningún dato disponible en esta tabla",
+                paginate: {
+                    first: "Primero",
+                    previous: "Anterior",
+                    next: "Siguiente",
+                    last: "Último"
+                },
+                aria: {
+                    sortAscending: ": Activar para ordenar la columna de manera ascendente",
+                    sortDescending: ": Activar para ordenar la columna de manera descendente"
+                }
+            }
+        });
+
+        {% if messages %}
+            {% for message in messages %}
+                Swal.fire({
+                    position: "top-end",
+                    icon: "{{ message.tags }}" === "error" ? "error" : "success",
+                    title: "{{ message }}",
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+            {% endfor %}
+        {% endif %}
+    });
+
+    function pedirConfirmacion(formEl, nombre) {
+        Swal.fire({
+            title: "¿Estás seguro?",
+            text: "¡No podrás revertir esto!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Sí, desactivar!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                formEl.submit();
+            }
+        });
+    }
+
+    function pedirConfirmacionActivar(formEl, nombre) {
+        Swal.fire({
+            title: "¿Estás seguro?",
+            text: "¡Esto reactivará el registro '" + nombre + "'!",
+            icon: "info",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Sí, activar!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                formEl.submit();
+            }
+        });
+    }
+</script>
+{% endblock %}

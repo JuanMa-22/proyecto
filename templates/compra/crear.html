@@ -1,0 +1,449 @@
+<div id="modalCrearCompra" class="modal modal-lg">
+    <div class="modal-content">
+        <span class="close" onclick="cerrarModal('modalCrearCompra')">&times;</span>
+        <h3 class="card-title" style="margin-bottom: 20px;">Nueva Compra</h3>
+        
+        <form action="{% url 'compra:crear' %}" method="POST" id="formCompra">
+            {% csrf_token %}
+            <div style="display: flex; gap: 15px;">
+                <div class="form-group" style="flex: 2;">
+                    <label>Proveedor</label>
+                    <div style="display: flex; gap: 10px;">
+                        <select name="proveedor_id" id="selectProveedor" required>
+                            <option value="">Seleccione un proveedor...</option>
+                            {% for prov in proveedores %}
+                                <option value="{{ prov.id_proveedor }}">{{ prov.nombre }} - Telf: {{ prov.telefono }}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="button" class="btn-primary" onclick="abrirModalProveedor()" title="Nuevo Proveedor"><i class='bx bx-plus'></i></button>
+                    </div>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>Tipo de Cambio</label>
+                    <input type="text" id="tipoCambioDisplay" readonly value="Bs. {{ tipo_cambio.valor|default:'6.96' }}" style="background-color: var(--background-hover); border: 1.5px solid var(--border-color); font-weight: 600; color: var(--text-secondary); cursor: not-allowed;">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>Fecha</label>
+                    <input type="date" name="fecha" required value="{% now 'Y-m-d' %}" min="{% now 'Y-m-d' %}">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Observaciones</label>
+                <input type="text" name="observacion">
+            </div>
+
+            <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 20px 0;">
+
+            <h4 style="margin-bottom: 15px;">Agregar Productos</h4>
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label>Producto</label>
+                <div style="display: flex; gap: 10px; width: 100%;">
+                    <div style="flex: 1;">
+                        <select id="prodSelect">
+                            <option value="">Seleccione...</option>
+                            {% regroup productos by categoria as productos_por_categoria %}
+                            {% for grupo in productos_por_categoria %}
+                                <optgroup label="{{ grupo.grouper.nombre }}">
+                                    {% for prod in grupo.list %}
+                                        <option value="{{ prod.id_producto }}" data-nombre="{{ prod.nombre }}">
+                                            {{ prod.nombre }}
+                                        </option>
+                                    {% endfor %}
+                                </optgroup>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="button" class="btn-primary" onclick="abrirModalProducto()" title="Nuevo Producto" style="height: 40px; display: flex; align-items: center; justify-content: center; width: 40px; flex-shrink: 0;">
+                        <i class='bx bx-plus'></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 15px; align-items: flex-end; margin-bottom: 20px;">
+                <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                    <label>Cantidad</label>
+                    <input type="number" id="prodCantidad" min="1" value="1">
+                </div>
+                <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                    <label>P. Compra (USD)</label>
+                    <input type="number" step="0.01" id="prodPrecio" min="0">
+                </div>
+                <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                    <label>P. Venta (USD)</label>
+                    <input type="number" step="0.01" id="prodPrecioVenta" min="0">
+                </div>
+                <div style="flex: 1; text-align: right;">
+                    <button type="button" class="btn-primary" onclick="agregarProductoCompra()" style="height: 40px; width: 100%; display: flex; align-items: center; justify-content: center; gap: 5px;">
+                        <i class='bx bx-plus'></i> Agregar
+                    </button>
+                </div>
+            </div>
+
+            <div class="table-responsive" style="max-height: 200px; overflow: auto; margin-bottom: 20px;">
+                <table class="table-details" id="tablaDetallesCompra">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Cant.</th>
+                            <th>P. Compra (USD)</th>
+                            <th>P. Venta (USD)</th>
+                            <th>Subtotal (USD)</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="placeholder-row">
+                            <td colspan="6" class="empty-placeholder">
+                                <i class='bx bx-basket'></i>
+                                Ningún producto agregado a esta transacción todavía.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="transaction-summary-box">
+                <input type="hidden" id="tipoCambioValor" value="{{ tipo_cambio.valor|default:'1' }}">
+                <input type="hidden" name="total" id="totalCompraInput" value="0">
+                <div class="summary-item main">
+                    <span class="summary-label">Total Compra:</span>
+                    <span class="summary-value highlight">USD <span id="totalCompraDisplayUsd">0.00</span></span>
+                </div>
+                <div class="summary-divider"></div>
+                <div class="summary-item secondary">
+                    <span class="summary-label">Equivalente en Bs:</span>
+                    <span class="summary-value">Bs. <span id="totalCompraDisplayBs">0.00</span></span>
+                </div>
+            </div>
+
+            <div style="text-align: right;">
+                <button type="button" class="btn-secondary" onclick="cerrarModal('modalCrearCompra')">Cancelar</button>
+                <button type="submit" class="btn-primary" id="btnGuardarCompra">Completar Compra</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% include 'proveedor/crear.html' %}
+{% include 'producto/crear.html' %}
+
+<script>
+    let totalCompra = 0;
+
+    (function() {
+        function matchCustomSelect2(params, data) {
+            if ($.trim(params.term) === '') {
+                return data;
+            }
+            if (typeof data.text === 'undefined') {
+                return null;
+            }
+            var term = params.term.toLowerCase();
+            if (data.text.toLowerCase().indexOf(term) > -1) {
+                return data;
+            }
+            if (data.children && data.children.length > 0) {
+                if (data.text.toLowerCase().indexOf(term) > -1) {
+                    return data;
+                }
+                var filteredChildren = [];
+                for (var i = 0; i < data.children.length; i++) {
+                    var matchedChild = matchCustomSelect2(params, data.children[i]);
+                    if (matchedChild !== null) {
+                        filteredChildren.push(matchedChild);
+                    }
+                }
+                if (filteredChildren.length > 0) {
+                    var modifiedData = $.extend({}, data, true);
+                    modifiedData.children = filteredChildren;
+                    return modifiedData;
+                }
+            }
+            return null;
+        }
+
+        function init() {
+            $('#selectProveedor').select2({
+                width: '100%',
+                placeholder: "Buscar proveedor...",
+                allowClear: true,
+                dropdownParent: $('#modalCrearCompra')
+            });
+            $('#prodSelect').select2({
+                width: '100%',
+                placeholder: "Buscar producto...",
+                allowClear: true,
+                dropdownParent: $('#modalCrearCompra'),
+                matcher: matchCustomSelect2
+            });
+
+            // Intercept provider creation form submission
+            const proveedorForm = document.querySelector('#modalCrearProveedor form');
+            if (proveedorForm) {
+                proveedorForm.classList.add('ajax-form');
+                proveedorForm.dataset.ajax = 'true';
+                proveedorForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    const csrf = proveedorForm.querySelector('[name=csrfmiddlewaretoken]').value;
+                    const formData = new FormData(proveedorForm);
+                    formData.append('is_ajax', 'true');
+                    
+                    try {
+                        const res = await fetch("{% url 'proveedor:crear' %}", {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRFToken': csrf,
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            body: formData
+                        });
+
+                        const data = await res.json();
+                        if(data.success) {
+                            const select = document.getElementById('selectProveedor');
+                            const option = new Option(
+                                data.nombre + ' - Telf: ' + (formData.get('telefono') || ''),
+                                data.id,
+                                true,
+                                true
+                            );
+                            select.add(option);
+                            $('#selectProveedor').val(data.id).trigger('change');
+                            cerrarModal('modalCrearProveedor');
+                            proveedorForm.reset();
+                        } else {
+                            mostrarErrorFormulario('modalCrearProveedor', 'Error al crear proveedor: ' + (data.error || 'Error desconocido'));
+                        }
+                    } catch (error) {
+                        console.error('Error al crear proveedor', error);
+                    }
+                });
+            }
+
+            // Intercept product creation form submission
+            const productoForm = document.querySelector('#modalCrearProducto form');
+            if (productoForm) {
+                productoForm.classList.add('ajax-form');
+                productoForm.dataset.ajax = 'true';
+                productoForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    const csrf = productoForm.querySelector('[name=csrfmiddlewaretoken]').value;
+                    const formData = new FormData(productoForm);
+                    formData.append('is_ajax', 'true');
+                    
+                    try {
+                        const res = await fetch("{% url 'producto:crear' %}", {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRFToken': csrf,
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            body: formData
+                        });
+
+                        const data = await res.json();
+                        if(data.success) {
+                            const select = document.getElementById('prodSelect');
+                            const option = document.createElement('option');
+                            option.value = data.id;
+                            option.text = data.nombre;
+                            option.dataset.nombre = data.nombre;
+                            option.selected = true;
+                            select.add(option);
+                            
+                            $('#prodSelect').val(data.id).trigger('change');
+                            
+                            cerrarModal('modalCrearProducto');
+                            productoForm.reset();
+                        } else {
+                            mostrarErrorFormulario('modalCrearProducto', 'Error al crear producto: ' + (data.error || 'Error desconocido'));
+                        }
+                    } catch (error) {
+                        console.error('Error al crear producto', error);
+                    }
+                });
+            }
+        }
+
+        function checkAndRun() {
+            if (window.jQuery && window.jQuery.fn.select2) {
+                init();
+            } else {
+                setTimeout(checkAndRun, 50);
+            }
+        }
+        checkAndRun();
+    })();
+
+    function abrirModalProveedor() {
+        abrirModal('modalCrearProveedor');
+    }
+
+    function abrirModalProducto() {
+        abrirModal('modalCrearProducto');
+    }
+
+    // Asistente automático de margen comercial (15% sugerido)
+    document.getElementById('prodPrecio').addEventListener('input', function() {
+        const precioCompra = parseFloat(this.value);
+        if (!isNaN(precioCompra) && precioCompra > 0) {
+            document.getElementById('prodPrecioVenta').value = Math.round(precioCompra * 1.15).toFixed(2);
+        } else {
+            document.getElementById('prodPrecioVenta').value = '';
+        }
+    });
+
+    function agregarProductoCompra() {
+        const select = document.getElementById('prodSelect');
+        if (select.selectedIndex === 0) return mostrarErrorFormulario('modalCrearCompra', 'Por favor, seleccione un producto.');
+        
+        const id = select.value;
+        const nombre = select.options[select.selectedIndex].dataset.nombre;
+        const cantidad = parseFloat(document.getElementById('prodCantidad').value);
+        const precio = parseFloat(document.getElementById('prodPrecio').value);
+        const precioVenta = parseFloat(document.getElementById('prodPrecioVenta').value);
+
+        if (!cantidad || cantidad <= 0) return mostrarErrorFormulario('modalCrearCompra', 'Ingrese una cantidad válida.');
+        if (!precio || precio < 0) return mostrarErrorFormulario('modalCrearCompra', 'Ingrese un precio de compra válido.');
+        if (!precioVenta || precioVenta < 0) return mostrarErrorFormulario('modalCrearCompra', 'Ingrese un precio de venta válido.');
+        
+        if (precioVenta < precio) {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: '¿Confirmar precio de venta?',
+                    text: 'Atención: El precio de venta es menor que el precio de compra. ¿Desea continuar?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: 'var(--accent-color)',
+                    cancelButtonColor: 'var(--text-secondary)',
+                    confirmButtonText: 'Sí, continuar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        ejecutarAgregarProductoCompra(id, nombre, cantidad, precio, precioVenta);
+                    }
+                });
+            } else {
+                if (confirm('Atención: El precio de venta es menor que el precio de compra. ¿Desea continuar?')) {
+                    ejecutarAgregarProductoCompra(id, nombre, cantidad, precio, precioVenta);
+                }
+            }
+        } else {
+            ejecutarAgregarProductoCompra(id, nombre, cantidad, precio, precioVenta);
+        }
+    }
+
+    function ejecutarAgregarProductoCompra(id, nombre, cantidad, precio, precioVenta) {
+        const subtotal = cantidad * precio;
+        const tbody = document.querySelector('#tablaDetallesCompra tbody');
+
+        // Eliminar fila de placeholder si existe
+        const placeholder = tbody.querySelector('.placeholder-row');
+        if (placeholder) placeholder.remove();
+        
+        // Buscar si el producto ya está en la tabla
+        let filaExistente = null;
+        const inputsProducto = tbody.querySelectorAll('input[name="producto[]"]');
+        for (let inp of inputsProducto) {
+            if (inp.value === id) {
+                filaExistente = inp.closest('tr');
+                break;
+            }
+        }
+
+        if (filaExistente) {
+            const inputCantidad = filaExistente.querySelector('input[name="cantidad[]"]');
+            const inputPrecio = filaExistente.querySelector('input[name="precio[]"]');
+            const inputPrecioVenta = filaExistente.querySelector('input[name="precio_venta[]"]');
+            
+            const cantAnterior = parseFloat(inputCantidad.value);
+            const precioAnterior = parseFloat(inputPrecio.value);
+            const subtotalAnterior = cantAnterior * precioAnterior;
+
+            const nuevaCantidad = cantAnterior + cantidad;
+            const nuevoSubtotal = nuevaCantidad * precio;
+
+            // Actualizar inputs de la fila
+            inputCantidad.value = nuevaCantidad;
+            inputPrecio.value = precio;
+            inputPrecioVenta.value = precioVenta;
+
+            // Actualizar celdas visibles
+            const tds = filaExistente.querySelectorAll('td');
+            tds[1].innerHTML = `${nuevaCantidad} <input type="hidden" name="cantidad[]" value="${nuevaCantidad}">`;
+            tds[2].innerHTML = `${precio.toFixed(2)} <input type="hidden" name="precio[]" value="${precio}">`;
+            tds[3].innerHTML = `${precioVenta.toFixed(2)} <input type="hidden" name="precio_venta[]" value="${precioVenta}">`;
+            tds[4].textContent = nuevoSubtotal.toFixed(2);
+            
+            // Reconfigurar botón eliminar
+            const btnEliminar = tds[5].querySelector('button');
+            btnEliminar.setAttribute('onclick', `removerProductoCompra(this, ${nuevoSubtotal})`);
+
+            // Ajustar total global
+            totalCompra = totalCompra - subtotalAnterior + nuevoSubtotal;
+        } else {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${nombre} <input type="hidden" name="producto[]" value="${id}"></td>
+                <td>${cantidad} <input type="hidden" name="cantidad[]" value="${cantidad}"></td>
+                <td>${precio.toFixed(2)} <input type="hidden" name="precio[]" value="${precio}"></td>
+                <td>${precioVenta.toFixed(2)} <input type="hidden" name="precio_venta[]" value="${precioVenta}"></td>
+                <td>${subtotal.toFixed(2)}</td>
+                <td><button type="button" class="btn-icon" onclick="removerProductoCompra(this, ${subtotal})"><i class='bx bx-trash' style="color:var(--red-color)"></i></button></td>
+            `;
+            tbody.appendChild(tr);
+            totalCompra += subtotal;
+        }
+        
+        actualizarTotalCompra();
+        
+        // Reset
+        $('#prodSelect').val('').trigger('change');
+        document.getElementById('prodCantidad').value = 1;
+        document.getElementById('prodPrecio').value = '';
+        document.getElementById('prodPrecioVenta').value = '';
+    }
+
+    function removerProductoCompra(btn, subtotal) {
+        btn.closest('tr').remove();
+        totalCompra -= subtotal;
+        actualizarTotalCompra();
+
+        // Mostrar placeholder si la tabla queda vacía
+        const tbody = document.querySelector('#tablaDetallesCompra tbody');
+        if (tbody && tbody.querySelectorAll('tr').length === 0) {
+            tbody.innerHTML = `
+                <tr class="placeholder-row">
+                    <td colspan="6" class="empty-placeholder">
+                        <i class='bx bx-basket'></i>
+                        Ningún producto agregado a esta transacción todavía.
+                    </td>
+                </tr>
+            `;
+        }
+    }
+
+    function actualizarTotalCompra() {
+        const tc = parseFloat(document.getElementById('tipoCambioValor').value) || 1;
+        document.getElementById('totalCompraDisplayUsd').textContent = totalCompra.toFixed(2);
+        document.getElementById('totalCompraDisplayBs').textContent = (totalCompra * tc).toFixed(2);
+        document.getElementById('totalCompraInput').value = totalCompra.toFixed(2);
+    }
+
+    function previewImage(input, containerId, imageId) {
+        const container = document.getElementById(containerId);
+        const img = document.getElementById(imageId);
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                img.src = e.target.result;
+                container.style.display = 'block';
+            }
+            reader.readAsDataURL(input.files[0]);
+        } else {
+            img.src = '';
+            container.style.display = 'none';
+        }
+    }
+</script>

@@ -1,0 +1,1169 @@
+{% extends 'pagina/base.html' %}
+{% load static %}
+{% load l10n %}
+
+{% block title %}SISMEING | Computadoras y Componentes en La Paz{% endblock %}
+{% block meta_description %}Encuentra computadoras, procesadores, tarjetas gráficas, placas madre y componentes de computación en SISMEING, La Paz, Bolivia. Armado a medida y soporte técnico.{% endblock %}
+
+{% block og_title %}SISMEING | Computadoras y Componentes en La Paz{% endblock %}
+{% block og_description %}Encuentra computadoras, procesadores, tarjetas gráficas, placas madre y componentes de computación en SISMEING, La Paz, Bolivia. Armado a medida y soporte técnico.{% endblock %}
+
+{% block twitter_title %}SISMEING | Computadoras y Componentes en La Paz{% endblock %}
+{% block twitter_description %}Encuentra computadoras, procesadores, tarjetas gráficas, placas madre y componentes de computación en SISMEING, La Paz, Bolivia. Armado a medida y soporte técnico.{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    /* ──── Layout principal con sidebar ──── */
+    .page-wrapper {
+        display: grid;
+        grid-template-columns: 240px 1fr;
+        min-height: calc(100vh - 80px);
+        align-items: start;
+    }
+
+    /* ──── Sidebar de categorías ──── */
+    .sidebar {
+        position: sticky;
+        top: 80px;
+        background: #fff;
+        border-right: 1px solid var(--grey-border);
+        padding: 1.5rem 0;
+        min-height: calc(100vh - 80px);
+    }
+
+    .sidebar-title {
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        padding: 0 1.2rem 0.75rem 1.2rem;
+        border-bottom: 1px solid var(--grey-border);
+        margin-bottom: 0.5rem;
+    }
+
+    .sidebar-cat-list {
+        list-style: none;
+    }
+
+    .sidebar-cat-list li a {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.65rem 1.2rem;
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: var(--text-dark);
+        text-decoration: none;
+        transition: all 0.2s ease;
+        border-left: 3px solid transparent;
+    }
+
+    .sidebar-cat-list li a:hover,
+    .sidebar-cat-list li a.active {
+        background: #fff5f0;
+        color: var(--primary);
+        border-left-color: var(--primary);
+        font-weight: 700;
+    }
+
+    .sidebar-cat-list li a .cat-count {
+        margin-left: auto;
+        font-size: 0.7rem;
+        background: var(--grey-border);
+        color: var(--text-muted);
+        padding: 2px 6px;
+        border-radius: 20px;
+    }
+
+    .sidebar-cat-list li a.active .cat-count {
+        background: var(--primary);
+        color: white;
+    }
+
+    .sidebar-all-link {
+        display: block;
+        text-align: center;
+        margin: 1rem 1.2rem 0 1.2rem;
+        padding: 0.5rem;
+        font-size: 0.78rem;
+        color: var(--primary);
+        font-weight: 600;
+        text-decoration: none;
+        border: 1px dashed var(--primary);
+        border-radius: 8px;
+        transition: all 0.2s;
+    }
+    .sidebar-all-link:hover {
+        background: var(--primary);
+        color: white;
+    }
+
+    /* ──── Área principal de contenido ──── */
+    .main-content {
+        padding: 1.5rem 2rem 3rem 2rem;
+    }
+
+    /* ──── Hero compacto ──── */
+    .hero-compact {
+        background: linear-gradient(135deg, #0A0A0A 0%, #1a0500 100%);
+        border-radius: 16px;
+        padding: 2.5rem 3rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 2rem;
+        margin-bottom: 2rem;
+        overflow: hidden;
+        position: relative;
+    }
+    .hero-compact::before {
+        content: '';
+        position: absolute;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(255,77,0,0.15) 0%, transparent 70%);
+        top: -100px;
+        right: -50px;
+        pointer-events: none;
+    }
+    .hero-compact h1 {
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: white;
+        line-height: 1.15;
+        margin-bottom: 0.75rem;
+    }
+    .hero-compact h1 span { color: var(--primary); }
+    .hero-compact p {
+        color: rgba(255,255,255,0.55);
+        font-size: 0.9rem;
+        margin-bottom: 1.5rem;
+        max-width: 400px;
+    }
+    .hero-compact-img {
+        max-height: 180px;
+        object-fit: contain;
+        flex-shrink: 0;
+        filter: drop-shadow(0 0 30px rgba(255,77,0,0.4));
+    }
+    .hero-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+
+    /* ──── Features bar ──── */
+    .features-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    .feature-pill {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        background: white;
+        border: 1px solid var(--grey-border);
+        border-radius: 10px;
+        padding: 0.9rem 1.2rem;
+        cursor: pointer;
+        transition: all 0.25s;
+    }
+    .feature-pill:hover {
+        border-color: var(--primary);
+        box-shadow: 0 4px 15px rgba(255,77,0,0.1);
+        transform: translateY(-2px);
+    }
+    .feature-pill i {
+        font-size: 1.2rem;
+        color: var(--primary);
+        width: 28px;
+        text-align: center;
+    }
+    .feature-pill h4 { font-size: 0.8rem; font-weight: 700; margin-bottom: 2px; }
+    .feature-pill p { font-size: 0.7rem; color: var(--text-muted); }
+
+    /* ──── Barra de resultados ──── */
+    .results-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.25rem;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    .results-bar h2 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--text-dark);
+    }
+    .results-bar .tag {
+        background: var(--primary);
+        color: white;
+        font-size: 0.7rem;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-weight: 600;
+        margin-left: 8px;
+    }
+    .clear-link {
+        font-size: 0.78rem;
+        color: var(--text-muted);
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        transition: color 0.2s;
+    }
+    .clear-link:hover { color: var(--primary); }
+
+    /* ──── Grilla de productos ──── */
+    .products-grid-v2 {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
+        gap: 1.25rem;
+    }
+
+    /* ──── Tarjeta de producto ──── */
+    .product-card-v2 {
+        background: white;
+        border: 1px solid var(--grey-border);
+        border-radius: 12px;
+        overflow: hidden;
+        position: relative;
+        transition: all 0.25s ease;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+    }
+    .product-card-v2:hover {
+        box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+        border-color: #ddd;
+        transform: translateY(-4px);
+    }
+
+    .product-card-v2 .badge {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 0.65rem;
+        font-weight: 700;
+        color: white;
+        text-transform: uppercase;
+        z-index: 2;
+    }
+    .badge-new { background: #00A651; }
+    .badge-sale { background: #FF4D00; }
+
+    .product-card-v2 .product-img-wrap {
+        height: 155px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f8f9fa;
+        padding: 1rem;
+    }
+    .product-card-v2 .product-img-wrap img {
+        max-height: 100%;
+        max-width: 100%;
+        object-fit: contain;
+        transition: transform 0.3s ease;
+    }
+    .product-card-v2:hover .product-img-wrap img {
+        transform: scale(1.06);
+    }
+
+    .product-card-v2 .product-info {
+        padding: 0.85rem 0.9rem 0.9rem;
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+    }
+    .product-card-v2 .cat-label {
+        font-size: 0.65rem;
+        font-weight: 600;
+        color: var(--primary);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 4px;
+    }
+    .product-card-v2 h4 {
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 6px;
+        line-height: 1.3;
+        height: 34px;
+        overflow: hidden;
+    }
+    .product-card-v2 .price {
+        font-size: 1.05rem;
+        font-weight: 800;
+        color: var(--primary);
+        margin-bottom: 8px;
+    }
+    .product-card-v2 .price small {
+        font-size: 0.7rem;
+        font-weight: 400;
+        color: var(--text-muted);
+    }
+
+    .product-card-v2 .card-actions {
+        display: flex;
+        gap: 0.4rem;
+        margin-top: auto;
+    }
+    .btn-detail {
+        flex: 1;
+        background: #f0f0f0;
+        color: var(--text-dark);
+        border: none;
+        border-radius: 8px;
+        padding: 0.55rem 0.5rem;
+        font-size: 0.72rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-align: center;
+    }
+    .btn-detail:hover {
+        background: #e0e0e0;
+    }
+    .btn-chat-card {
+        flex: 1;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.55rem 0.5rem;
+        font-size: 0.72rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        text-transform: uppercase;
+    }
+    .btn-chat-card:hover {
+        background: var(--primary-dark);
+        transform: translateY(-1px);
+    }
+
+    /* ──── Modal de especificaciones ──── */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.6);
+        z-index: 9000;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+        backdrop-filter: blur(4px);
+    }
+    .modal-overlay.active {
+        display: flex;
+    }
+    .modal-box {
+        background: white;
+        border-radius: 20px;
+        max-width: 680px;
+        width: 100%;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 25px 80px rgba(0,0,0,0.3);
+        animation: modalIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        position: relative;
+    }
+    @keyframes modalIn {
+        from { opacity: 0; transform: scale(0.85) translateY(20px); }
+        to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .modal-header-img {
+        background: #f8f9fa;
+        border-radius: 20px 20px 0 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 240px;
+        overflow: hidden;
+        position: relative;
+    }
+    .modal-header-img img {
+        max-height: 200px;
+        max-width: 90%;
+        object-fit: contain;
+    }
+    .modal-close-btn {
+        position: absolute;
+        top: 14px;
+        right: 14px;
+        background: rgba(0,0,0,0.08);
+        border: none;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        font-size: 1rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s;
+        z-index: 5;
+    }
+    .modal-close-btn:hover { background: rgba(0,0,0,0.18); }
+
+    .modal-body {
+        padding: 1.5rem 2rem 2rem;
+    }
+    .modal-category-tag {
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: var(--primary);
+        margin-bottom: 6px;
+    }
+    .modal-product-name {
+        font-size: 1.4rem;
+        font-weight: 800;
+        color: var(--text-dark);
+        margin-bottom: 0.5rem;
+        line-height: 1.2;
+    }
+    .modal-price {
+        font-size: 1.7rem;
+        font-weight: 800;
+        color: var(--primary);
+        margin-bottom: 1.25rem;
+    }
+    .modal-price small {
+        font-size: 1rem;
+        color: var(--text-muted);
+        font-weight: 400;
+    }
+    .modal-specs-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+    }
+    .spec-item {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 0.85rem 1rem;
+    }
+    .spec-item .spec-label {
+        font-size: 0.65rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--text-muted);
+        margin-bottom: 4px;
+    }
+    .spec-item .spec-value {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text-dark);
+    }
+    .modal-descripcion {
+        background: #fff5f0;
+        border-left: 3px solid var(--primary);
+        border-radius: 0 10px 10px 0;
+        padding: 1rem 1.2rem;
+        font-size: 0.85rem;
+        color: var(--text-dark);
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+    }
+    .modal-stock-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 4px 12px;
+        border-radius: 20px;
+        margin-bottom: 1.25rem;
+    }
+    .stock-ok { background: #e6f9f0; color: #00A651; }
+    .stock-low { background: #fff3e0; color: #f57c00; }
+    .stock-out { background: #fce4ec; color: #c62828; }
+
+    .modal-footer-actions {
+        display: flex;
+        gap: 0.75rem;
+    }
+    .btn-modal-chat {
+        flex: 1;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding: 0.9rem 1.5rem;
+        font-size: 0.9rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.25s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        text-transform: uppercase;
+    }
+    .btn-modal-chat:hover {
+        background: var(--primary-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(255,77,0,0.3);
+    }
+
+    /* Ocultar el botón flotante azul original del chatbot (usamos nuestro FAB naranja) */
+    .chatbot-floating-btn { display: none !important; }
+
+    /* ──── FAB Chatbot flotante ──── */
+    .fab-chatbot {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        width: 58px;
+        height: 58px;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        font-size: 1.4rem;
+        cursor: pointer;
+        box-shadow: 0 6px 20px rgba(255,77,0,0.45);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 8000;
+        transition: all 0.3s ease;
+        animation: fabPulse 2.5s infinite;
+    }
+    .fab-chatbot:hover {
+        background: var(--primary-dark);
+        transform: scale(1.1);
+        animation: none;
+    }
+    @keyframes fabPulse {
+        0%, 100% { box-shadow: 0 6px 20px rgba(255,77,0,0.45); }
+        50% { box-shadow: 0 6px 30px rgba(255,77,0,0.7), 0 0 0 8px rgba(255,77,0,0.1); }
+    }
+
+    /* ──── CTA bottom ──── */
+    .cta-section {
+        background: linear-gradient(135deg, #0A0A0A, #1a0a0a);
+        border-radius: 16px;
+        padding: 3rem 2.5rem;
+        text-align: center;
+        margin-top: 2.5rem;
+    }
+    .cta-section h2 {
+        color: white;
+        font-size: 1.7rem;
+        font-weight: 800;
+        margin-bottom: 0.75rem;
+    }
+    .cta-section h2 span { color: var(--primary); }
+    .cta-section p {
+        color: rgba(255,255,255,0.55);
+        margin-bottom: 1.75rem;
+        font-size: 0.9rem;
+    }
+
+    /* ──── Empty state ──── */
+    .empty-products {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 4rem 2rem;
+    }
+    .empty-products i {
+        font-size: 3.5rem;
+        color: var(--grey-border);
+        margin-bottom: 1rem;
+        display: block;
+    }
+    .empty-products p {
+        color: var(--text-muted);
+        font-size: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    /* ──── Responsive ──── */
+    @media (max-width: 1024px) {
+        .page-wrapper {
+            grid-template-columns: 200px 1fr;
+        }
+        .main-content { padding: 1.25rem 1.25rem 3rem; }
+    }
+    @media (max-width: 768px) {
+        .page-wrapper {
+            grid-template-columns: 1fr;
+        }
+        .sidebar {
+            position: static;
+            border-right: none;
+            border-bottom: 1px solid var(--grey-border);
+            min-height: auto;
+            padding: 0.75rem 0;
+        }
+        .sidebar-cat-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            padding: 0.5rem 1rem;
+        }
+        .sidebar-cat-list li a {
+            padding: 0.4rem 0.85rem;
+            border-left: none;
+            border: 1px solid var(--grey-border);
+            border-radius: 20px;
+            font-size: 0.78rem;
+        }
+        .sidebar-cat-list li a.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        .sidebar-cat-list li a .cat-count { display: none; }
+        .sidebar-all-link { display: none; }
+        .sidebar-title { padding-bottom: 0.5rem; }
+        .features-row { grid-template-columns: 1fr; }
+        .hero-compact { padding: 1.75rem; flex-direction: column; align-items: flex-start; }
+        .hero-compact-img { display: none; }
+        .hero-compact h1 { font-size: 1.7rem; }
+        .modal-specs-grid { grid-template-columns: 1fr; }
+        .modal-body { padding: 1.25rem 1.25rem 1.75rem; }
+        .modal-header-img { height: 180px; }
+        .modal-footer-actions { flex-direction: column; }
+        .fab-chatbot { bottom: 1.25rem; right: 1.25rem; }
+    }
+    @media (max-width: 480px) {
+        .products-grid-v2 { grid-template-columns: repeat(2, 1fr); }
+        .cta-section h2 { font-size: 1.3rem; }
+        .hero-compact h1 { font-size: 1.5rem; }
+    }
+
+    /* ──── Agrupación por Categorías ──── */
+    .category-block {
+        margin-bottom: 3rem;
+    }
+    .category-header-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.25rem;
+        border-bottom: 2px solid var(--grey-border);
+        padding-bottom: 0.5rem;
+    }
+    .category-title {
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: var(--text-dark);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .category-title span {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        font-weight: 500;
+    }
+    .category-link {
+        font-size: 0.8rem;
+        color: var(--primary);
+        font-weight: 600;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        transition: color 0.2s;
+    }
+    .category-link:hover {
+        color: var(--primary-dark);
+    }
+    .btn-show-more-category {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        padding: 0.6rem 1.5rem;
+        border: 1.5px solid var(--primary);
+        border-radius: 30px;
+        background: transparent;
+        color: var(--primary);
+        cursor: pointer;
+        transition: all 0.25s ease;
+    }
+    .btn-show-more-category:hover {
+        background: var(--primary);
+        color: white;
+        box-shadow: 0 4px 12px rgba(255,77,0,0.25);
+        transform: translateY(-1px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-wrapper">
+
+    <!-- ── SIDEBAR DE CATEGORÍAS ── -->
+    <aside class="sidebar">
+        <div class="sidebar-title">Categorías</div>
+        <ul class="sidebar-cat-list">
+            {% for cat in categorias %}
+            <li>
+                <a href="{% url 'web:categoria_pagina' cat.slug %}"
+                   class="{% if categoria_activa and categoria_activa.id_categoria == cat.id_categoria %}active{% endif %}">
+                    <i class="fas fa-tag"></i>
+                    {{ cat.nombre }}
+                    <span class="cat-count">{{ cat.total_productos_disponibles }}</span>
+                </a>
+            </li>
+            {% empty %}
+            <li style="padding: 0.65rem 1.2rem; font-size: 0.82rem; color: var(--text-muted);">Sin categorías</li>
+            {% endfor %}
+        </ul>
+        {% if categoria_seleccionada or query %}
+        <a href="{% url 'web:inicio_pagina' %}" class="sidebar-all-link">
+            <i class="fas fa-th-large"></i> Ver todos
+        </a>
+        {% endif %}
+    </aside>
+
+    <!-- ── CONTENIDO PRINCIPAL ── -->
+    <div class="main-content">
+
+        <!-- Hero compacto -->
+        <div class="hero-compact">
+            <div>
+                <h1>EQUIPA TU MUNDO.<br><span>DOMINA EL JUEGO.</span></h1>
+                <p>Todo lo que necesitas en tecnología y rendimiento, en un solo lugar.</p>
+                <div class="hero-actions">
+                    <a href="#productos" class="btn-orange">
+                        <i class="fas fa-box-open"></i> VER PRODUCTOS
+                    </a>
+                    <a href="{% url 'web:servicios_pagina' %}" class="btn-outline-hero">
+                        <i class="fas fa-tools"></i> SERVICIOS
+                    </a>
+                </div>
+            </div>
+            <img src="{% static 'img/fondo.png' %}" alt="Sismeing PC Setup" class="hero-compact-img">
+        </div>
+
+        <!-- Features -->
+        <div class="features-row">
+            <div class="feature-pill">
+                <i class="fas fa-shield-alt"></i>
+                <div>
+                    <h4>GARANTÍA TOTAL</h4>
+                    <p>Todos los productos con garantía</p>
+                </div>
+            </div>
+            <div class="feature-pill">
+                <i class="fas fa-award"></i>
+                <div>
+                    <h4>CALIDAD GARANTIZADA</h4>
+                    <p>Las mejores marcas del mercado</p>
+                </div>
+            </div>
+            <div class="feature-pill">
+                <i class="fas fa-headset"></i>
+                <div>
+                    <h4>SOPORTE 24/7</h4>
+                    <p>Asistencia técnica especializada</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Barra de resultados -->
+        <div class="results-bar" id="productos">
+            <div>
+                {% if query %}
+                <h2>Resultados para "<strong>{{ query }}</strong>"
+                    <span class="tag">{{ productos|length }} encontrados</span>
+                </h2>
+                {% elif categoria_activa %}
+                <h2>{{ categoria_activa.nombre }}
+                    <span class="tag">{{ productos|length }} productos</span>
+                </h2>
+                {% else %}
+                <h2>Productos Destacados</h2>
+                {% endif %}
+            </div>
+            {% if query or categoria_seleccionada %}
+            <a href="{% url 'web:inicio_pagina' %}#productos" class="clear-link">
+                <i class="fas fa-times-circle"></i> Limpiar filtros
+            </a>
+            {% endif %}
+        </div>
+
+        <!-- Grilla de productos -->
+        {% if mostrar_agrupados %}
+            {% for item in categorias_con_productos %}
+            <div class="category-block {% if forloop.counter0 >= 2 %}extra-category-block{% endif %}" {% if forloop.counter0 >= 2 %}style="display: none;"{% endif %}>
+                <div class="category-header-row">
+                    <h3 class="category-title">
+                        {{ item.categoria.nombre }}
+                        <span>({{ item.count }} productos)</span>
+                    </h3>
+                    <a href="{% url 'web:categoria_pagina' item.categoria.slug %}" class="category-link">
+                        Ver sección <i class="fas fa-chevron-right" style="font-size: 0.7rem;"></i>
+                    </a>
+                </div>
+                
+                <div class="products-grid-v2" id="cat-grid-{{ item.categoria.id_categoria }}">
+                    {% for producto in item.productos %}
+                    <div class="product-card-v2"
+                         onclick="window.location.href='{% url 'web:detalle_producto' producto.slug %}'">
+                        <div class="product-img-wrap">
+                            {% if producto.imagen %}
+                            <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }} - {{ producto.marca.nombre }} en SISMEING" loading="lazy">
+                            {% else %}
+                            <img src="https://via.placeholder.com/150x150/f8f9fa/adb5bd?text={{ producto.nombre|urlencode }}" alt="{{ producto.nombre }} - {{ producto.marca.nombre }} en SISMEING" loading="lazy">
+                            {% endif %}
+                        </div>
+                        <div class="product-info">
+                            <span class="cat-label">{{ producto.categoria.nombre }}</span>
+                            <h4><a href="{% url 'web:detalle_producto' producto.slug %}" style="text-decoration: none; color: inherit;">{{ producto.nombre }}</a></h4>
+                            <div class="price">
+                                Bs. {{ producto.precio_actual|floatformat:2 }}
+                                <small>/ ${{ producto.precio_usd|floatformat:2 }}</small>
+                            </div>
+                            <div class="card-actions">
+                                <a href="{% url 'web:detalle_producto' producto.slug %}" class="btn-detail" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 5px;">
+                                    <i class="fas fa-eye"></i> Ver más
+                                </a>
+                                <button class="btn-chat-card" onclick="event.stopPropagation(); enviarMensajeChatDirecto('Quiero consultar sobre el producto: {{ producto.nombre|escapejs }}')">
+                                    <i class="fas fa-comment-dots"></i> Consultar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+            
+            {% if categorias_con_productos|length > 2 %}
+            <div style="text-align: center; margin-top: 2rem; margin-bottom: 2rem;">
+                <button id="btn-toggle-categories" class="btn-show-more-category" data-expanded="false" onclick="toggleAllCategories(this)">
+                    <i class="fas fa-plus"></i> Ver más
+                </button>
+            </div>
+            {% endif %}
+        {% else %}
+            <div class="products-grid-v2">
+                {% for producto in productos %}
+                <div class="product-card-v2"
+                     onclick="window.location.href='{% url 'web:detalle_producto' producto.slug %}'">
+                    {% if forloop.first and not query and not categoria_seleccionada %}
+                    <span class="badge badge-new">NUEVO</span>
+                    {% endif %}
+                    <div class="product-img-wrap">
+                        {% if producto.imagen %}
+                        <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }} - {{ producto.marca.nombre }} en SISMEING" loading="lazy">
+                        {% else %}
+                        <img src="https://via.placeholder.com/150x150/f8f9fa/adb5bd?text={{ producto.nombre|urlencode }}" alt="{{ producto.nombre }} - {{ producto.marca.nombre }} en SISMEING" loading="lazy">
+                        {% endif %}
+                    </div>
+                    <div class="product-info">
+                        <span class="cat-label">{{ producto.categoria.nombre }}</span>
+                        <h4><a href="{% url 'web:detalle_producto' producto.slug %}" style="text-decoration: none; color: inherit;">{{ producto.nombre }}</a></h4>
+                        <div class="price">
+                            Bs. {{ producto.precio_actual|floatformat:2 }}
+                            <small>/ ${{ producto.precio_usd|floatformat:2 }}</small>
+                        </div>
+                        <div class="card-actions">
+                            <a href="{% url 'web:detalle_producto' producto.slug %}" class="btn-detail" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 5px;">
+                                <i class="fas fa-eye"></i> Ver más
+                            </a>
+                            <button class="btn-chat-card" onclick="event.stopPropagation(); enviarMensajeChatDirecto('Quiero consultar sobre el producto: {{ producto.nombre|escapejs }}')">
+                                <i class="fas fa-comment-dots"></i> Consultar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="empty-products">
+                    <i class="fas fa-search"></i>
+                    <p>
+                        {% if query %}
+                            No se encontraron productos para "<strong>{{ query }}</strong>".
+                        {% else %}
+                            No hay productos en esta categoría.
+                        {% endif %}
+                    </p>
+                    <a href="{% url 'web:inicio_pagina' %}" class="btn-orange" style="display: inline-flex; padding: 0.75rem 1.5rem;">
+                        Ver todos los productos
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- CTA -->
+        {% if not query and not categoria_seleccionada %}
+        <div class="cta-section">
+            <h2>¿No sabes qué comprar? <span>Te ayudamos.</span></h2>
+            <p>Nuestro asistente con IA puede armarte una PC a tu medida, estimar FPS y comparar componentes.</p>
+            <button onclick="enviarMensajeChatDirecto('Quiero armar una PC gamer, ¿puedes ayudarme con un build?')" class="btn-orange">
+                <i class="fas fa-robot"></i> ARMAR MI PC CON IA
+            </button>
+        </div>
+        {% endif %}
+
+        <!-- SECCIÓN DE UBICACIÓN INTERACTIVA -->
+        {% if empresa.latitud and empresa.longitud %}
+        <div class="cta-section" style="margin-top: 2.5rem; text-align: left; padding: 2.5rem; border: 1px solid var(--grey-border);">
+            <h2 style="font-size: 1.6rem; font-family: 'Outfit', sans-serif; font-weight: 800; margin-bottom: 0.5rem; color: var(--text-dark);">
+                Nuestra <span>Ubicación</span>
+            </h2>
+            <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-map-marker-alt" style="color: var(--primary);"></i>
+                {{ empresa.direccion }}, {{ empresa.ciudad }}
+            </p>
+            
+            <div id="home-map" style="height: 350px; border-radius: 12px; border: 1px solid var(--grey-border); width: 100%; z-index: 1; margin-bottom: 1rem;"></div>
+            
+            {% if empresa.google_maps_link %}
+                <div style="text-align: right;">
+                    <a href="{{ empresa.google_maps_link }}" target="_blank" rel="noopener" class="btn-orange" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px; padding: 0.8rem 1.6rem; font-weight: 700; font-size: 0.9rem;">
+                        <i class="fas fa-directions"></i> Cómo llegar (GPS)
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+    </div><!-- /main-content -->
+</div><!-- /page-wrapper -->
+
+
+<!-- ══════════════════════════════════════
+     MODAL DE ESPECIFICACIONES DEL PRODUCTO
+══════════════════════════════════════ -->
+<div class="modal-overlay" id="modalProducto" onclick="cerrarModalSiOverlay(event)">
+    <div class="modal-box" id="modalBox">
+        <div class="modal-header-img" id="modalHeaderImg">
+            <img id="modalImg" src="" alt="Producto">
+            <button class="modal-close-btn" onclick="cerrarModalProducto()" title="Cerrar">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="modal-category-tag" id="modalCategoria"></div>
+            <h2 class="modal-product-name" id="modalNombre"></h2>
+            <div class="modal-price" id="modalPrecio"></div>
+            <div id="modalStockBadge" class="modal-stock-badge"></div>
+            <div class="modal-specs-grid" id="modalSpecsGrid"></div>
+            <div class="modal-descripcion" id="modalDescripcion" style="display:none;"></div>
+            <div class="modal-footer-actions">
+                <button class="btn-modal-chat" id="btnModalChat" onclick="">
+                    <i class="fas fa-comment-dots"></i> CONSULTAR CON IA
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    // Inicializar mapa de ubicación en Inicio si existen coordenadas
+    {% if empresa.latitud and empresa.longitud %}
+        document.addEventListener("DOMContentLoaded", function() {
+            try {
+                const lat = parseFloat("{{ empresa.latitud|unlocalize }}".replace(',', '.'));
+                const lng = parseFloat("{{ empresa.longitud|unlocalize }}".replace(',', '.'));
+                const map = L.map('home-map').setView([lat, lng], 16);
+                
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors'
+                }).addTo(map);
+                
+                const marker = L.marker([lat, lng]).addTo(map);
+                marker.bindPopup("<b>{% if empresa %}{{ empresa.nombre }}{% else %}SISMEING{% endif %}</b><br>{% if empresa %}{{ empresa.direccion }}{% endif %}").openPopup();
+                
+                marker.on('click', function() {
+                    {% if empresa.google_maps_link %}
+                        window.open("{{ empresa.google_maps_link }}", "_blank");
+                    {% else %}
+                        window.open(`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`, "_blank");
+                    {% endif %}
+                });
+            } catch (e) {
+                console.error("Error al cargar el mapa en la página de inicio:", e);
+            }
+        });
+    {% endif %}
+
+    // ──── Modal de producto ────
+    function abrirModalProducto(nombre, descripcion, precio, precioUsd, stock, categoria, marca, imagenUrl, socket, chipset, tipoRam, vram, watts, velocidadRam, almacenamiento, pci) {
+        const modal = document.getElementById('modalProducto');
+
+        // Imagen
+        const img = document.getElementById('modalImg');
+        if (imagenUrl) {
+            img.src = imagenUrl;
+            img.style.display = 'block';
+        } else {
+            img.src = 'https://via.placeholder.com/300x200/f8f9fa/adb5bd?text=' + encodeURIComponent(nombre);
+            img.style.display = 'block';
+        }
+
+        // Textos básicos
+        document.getElementById('modalCategoria').textContent = categoria.toUpperCase();
+        document.getElementById('modalNombre').textContent = nombre;
+        document.getElementById('modalPrecio').innerHTML = 'Bs. ' + precio + ' <small>/ $' + precioUsd + ' USD</small>';
+
+        // Stock badge
+        const stockNum = parseInt(stock);
+        const stockBadge = document.getElementById('modalStockBadge');
+        if (stockNum <= 0) {
+            stockBadge.className = 'modal-stock-badge stock-out';
+            stockBadge.innerHTML = '<i class="fas fa-times-circle"></i> Sin stock';
+        } else if (stockNum < 5) {
+            stockBadge.className = 'modal-stock-badge stock-low';
+            stockBadge.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Stock bajo: ' + stockNum + ' unid.';
+        } else {
+            stockBadge.className = 'modal-stock-badge stock-ok';
+            stockBadge.innerHTML = '<i class="fas fa-check-circle"></i> En stock: ' + stockNum + ' unid.';
+        }
+
+        // Especificaciones en grilla
+        const specs = [
+            { label: 'Categoría', value: categoria },
+            { label: 'Marca', value: marca },
+            { label: 'Precio (Bs)', value: 'Bs. ' + precio },
+            { label: 'Precio (USD)', value: '$ ' + precioUsd },
+            { label: 'Stock', value: stockNum + ' unidades' },
+            { label: 'Disponibilidad', value: stockNum > 0 ? 'Disponible' : 'Agotado' },
+        ];
+
+        if (socket && socket !== 'None' && socket.trim() !== '') specs.push({ label: 'Socket', value: socket });
+        if (chipset && chipset !== 'None' && chipset.trim() !== '') specs.push({ label: 'Chipset', value: chipset });
+        if (tipoRam && tipoRam !== 'None' && tipoRam.trim() !== '') specs.push({ label: 'Tipo RAM', value: tipoRam });
+        if (vram && vram !== 'None' && vram.trim() !== '') specs.push({ label: 'VRAM', value: vram });
+        if (watts && watts !== 'None' && watts.trim() !== '') specs.push({ label: 'Watts', value: watts });
+        if (velocidadRam && velocidadRam !== 'None' && velocidadRam.trim() !== '') specs.push({ label: 'Velocidad RAM', value: velocidadRam });
+        if (almacenamiento && almacenamiento !== 'None' && almacenamiento.trim() !== '') specs.push({ label: 'Almacenamiento', value: almacenamiento });
+        if (pci && pci !== 'None' && pci.trim() !== '') specs.push({ label: 'PCI', value: pci });
+
+        const grid = document.getElementById('modalSpecsGrid');
+        grid.innerHTML = specs.map(s => `
+            <div class="spec-item">
+                <div class="spec-label">${s.label}</div>
+                <div class="spec-value">${s.value}</div>
+            </div>
+        `).join('');
+
+        // Descripción
+        const descEl = document.getElementById('modalDescripcion');
+        if (descripcion && descripcion.trim() !== '') {
+            descEl.textContent = descripcion;
+            descEl.style.display = 'block';
+        } else {
+            descEl.style.display = 'none';
+        }
+
+        // Botón chatbot
+        document.getElementById('btnModalChat').onclick = function() {
+            cerrarModalProducto();
+            enviarMensajeChatDirecto('Quiero saber más sobre el producto: ' + nombre + ' de la marca ' + marca + '. Su precio es Bs. ' + precio + '.');
+        };
+
+        // Mostrar modal
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function cerrarModalProducto() {
+        document.getElementById('modalProducto').classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    function cerrarModalSiOverlay(event) {
+        if (event.target === document.getElementById('modalProducto')) {
+            cerrarModalProducto();
+        }
+    }
+
+    // Cerrar con ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') cerrarModalProducto();
+    });
+
+    // Alternar visibilidad de las categorías adicionales
+    function toggleAllCategories(btn) {
+        const extraCategories = document.querySelectorAll('.extra-category-block');
+        const isExpanded = btn.getAttribute('data-expanded') === 'true';
+        
+        if (isExpanded) {
+            // Contraer
+            extraCategories.forEach(el => el.style.display = 'none');
+            btn.setAttribute('data-expanded', 'false');
+            btn.innerHTML = '<i class="fas fa-plus"></i> Ver más';
+            
+            // Opcional: hacer scroll suave hacia arriba al inicio de los productos
+            document.getElementById('productos').scrollIntoView({ behavior: 'smooth' });
+        } else {
+            // Expandir
+            extraCategories.forEach(el => el.style.display = 'block');
+            btn.setAttribute('data-expanded', 'true');
+            btn.innerHTML = '<i class="fas fa-minus"></i> Ver menos';
+        }
+    }
+
+
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  "name": "SISMEING",
+  "image": "{{ request.scheme }}://{{ request.get_host }}{% static 'img/logo.png' %}",
+  "description": "SISMEING es tu tienda de confianza en La Paz, Bolivia para el armado de computadoras de alto rendimiento, venta de componentes de hardware y servicio técnico especializado.",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "Calle Ficticia 123",
+    "addressLocality": "La Paz",
+    "addressRegion": "La Paz",
+    "addressCountry": "BO"
+  },
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": -16.5000,
+    "longitude": -68.1500
+  },
+  "url": "{{ request.scheme }}://{{ request.get_host }}",
+  "telephone": "+59170000000",
+  "priceRange": "$$",
+  "openingHoursSpecification": [
+    {
+      "@type": "OpeningHoursSpecification",
+      "dayOfWeek": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday"
+      ],
+      "opens": "09:00",
+      "closes": "19:00"
+    }
+  ]
+}
+</script>
+{% endblock %}

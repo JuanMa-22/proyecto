@@ -1,0 +1,107 @@
+{% extends 'pagina/base.html' %}
+{% load static %}
+{% load l10n %}
+
+{% block title %}Ubicación | SISMEING La Paz{% endblock %}
+{% block meta_description %}Encuentra la ubicación física de SISMEING. Visítanos en La Paz, Bolivia, y obtén indicaciones GPS de cómo llegar a nuestra tienda.{% endblock %}
+
+{% block og_title %}Ubicación | SISMEING La Paz{% endblock %}
+{% block og_description %}Encuentra la ubicación física de SISMEING. Visítanos en La Paz, Bolivia, y obtén indicaciones GPS de cómo llegar a nuestra tienda.{% endblock %}
+
+{% block twitter_title %}Ubicación | SISMEING La Paz{% endblock %}
+{% block twitter_description %}Encuentra la ubicación física de SISMEING. Visítanos en La Paz, Bolivia, y obtén indicaciones GPS de cómo llegar a nuestra tienda.{% endblock %}
+
+{% block content %}
+<div class="inner-page-padding" style="padding: 60px 5% 100px 5%;">
+    <section>
+        <div class="section-title" style="text-align: center; margin-bottom: 40px;">
+            <h1 style="font-size: 2.5rem; color: var(--text-primary); font-family: 'Outfit', sans-serif; font-weight: 800; margin-bottom: 10px;">Nuestra Ubicación</h1>
+            <p style="color: var(--text-muted); font-size: 1.1rem; max-width: 600px; margin: 0 auto;">Visítanos en nuestra tienda física para recibir atención personalizada y asesoramiento técnico.</p>
+        </div>
+
+        <div style="max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 30px;">
+            <!-- Dirección física -->
+            <div class="glass-card" style="padding: 25px; border-radius: 20px; display: flex; align-items: center; gap: 20px; border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px);">
+                <div style="background: rgba(255, 77, 0, 0.1); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 1.8rem; flex-shrink: 0;">
+                    <i class="fas fa-map-marker-alt"></i>
+                </div>
+                <div>
+                    <h3 style="margin: 0 0 5px 0; font-size: 1.3rem; color: var(--text-primary); font-family: 'Outfit', sans-serif; font-weight: 700;">Dirección de la Tienda</h3>
+                    <p style="margin: 0; color: var(--text-secondary); font-size: 1.05rem; line-height: 1.5;">
+                        {% if empresa %}{{ empresa.direccion }}, {{ empresa.ciudad }}{% else %}Calle Ficticia 123, La Paz, Bolivia.{% endif %}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Contenedor del Mapa -->
+            <div class="glass-card" style="height: 500px; padding: 0; overflow: hidden; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.1); position: relative;">
+                {% if empresa.latitud and empresa.longitud %}
+                    <div id="public-map" style="width: 100%; height: 100%; z-index: 1;"></div>
+                    {% if empresa.google_maps_link %}
+                        <a href="{{ empresa.google_maps_link }}" target="_blank" rel="noopener" class="btn-primary" style="position: absolute; bottom: 25px; right: 25px; z-index: 999; text-decoration: none; display: inline-flex; align-items: center; gap: 10px; box-shadow: 0 8px 25px rgba(255, 77, 0, 0.3); font-weight: 700; padding: 12px 24px; border-radius: 12px;">
+                            <i class="fas fa-directions" style="font-size: 1.1rem;"></i> Cómo llegar (GPS)
+                        </a>
+                    {% endif %}
+                {% else %}
+                    <div style="width: 100%; height: 100%; background: rgba(255,255,255,0.02); display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 15px;">
+                        <i class="fas fa-map-marked-alt" style="font-size: 4.5rem; color: var(--primary); opacity: 0.8;"></i>
+                        <p style="color: var(--text-muted); font-size: 1.1rem; font-weight: 500;">Ubicación no configurada todavía</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    .btn-primary {
+        background: var(--primary);
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: 700;
+        font-family: 'Outfit', sans-serif;
+        transition: all 0.3s ease;
+        border: none;
+    }
+    .btn-primary:hover {
+        background: var(--primary-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 12px 30px rgba(255, 77, 0, 0.5) !important;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    {% if empresa.latitud and empresa.longitud %}
+        try {
+            const lat = parseFloat("{{ empresa.latitud|unlocalize }}".replace(',', '.'));
+            const lng = parseFloat("{{ empresa.longitud|unlocalize }}".replace(',', '.'));
+            const map = L.map('public-map').setView([lat, lng], 16);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+            
+            const marker = L.marker([lat, lng]).addTo(map);
+            marker.bindPopup("<b>{% if empresa %}{{ empresa.nombre }}{% else %}SISMEING{% endif %}</b><br>{% if empresa %}{{ empresa.direccion }}{% endif %}").openPopup();
+            
+            marker.on('click', function() {
+                {% if empresa.google_maps_link %}
+                    window.open("{{ empresa.google_maps_link }}", "_blank");
+                {% else %}
+                    window.open(`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`, "_blank");
+                {% endif %}
+            });
+        } catch (error) {
+            console.error("Error al cargar el mapa:", error);
+        }
+    {% endif %}
+</script>
+{% endblock %}

@@ -1,0 +1,23 @@
+<div id="modalCrearTipocambio" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="cerrarModal('modalCrearTipocambio')">&times;</span>
+        <h3 class="card-title" style="margin-bottom: 20px;">Crear Tipo de Cambio</h3>
+        
+        <form action="{% url 'tipoCambio:crear' %}" method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>Valor (Bs)</label>
+                <input type="number" name="valor" required step="0.01">
+            </div>
+            <div class="form-group">
+                <label>Fecha</label>
+                <input type="date" name="fecha" required>
+            </div>
+            
+            <div style="text-align: right; margin-top: 25px;">
+                <button type="button" class="btn-secondary" onclick="cerrarModal('modalCrearTipocambio')">Cancelar</button>
+                <button type="submit" class="btn-primary">Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>

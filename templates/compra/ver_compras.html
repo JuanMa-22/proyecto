@@ -1,0 +1,130 @@
+<div id="modalVerCompra{{ compra.id_compra }}" class="modal modal-lg">
+    <div class="modal-content" style="max-width: 800px; width: 95%; text-align: left;">
+        <span class="close" onclick="cerrarModal('modalVerCompra{{ compra.id_compra }}')">&times;</span>
+        <h3 class="card-title" style="margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+            <i class='bx bx-cart' style="color: var(--accent-color); font-size: 24px;"></i> Detalle de Compra
+        </h3>
+
+        <!-- Cards section -->
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:15px; margin-bottom: 20px;">
+            <!-- Información de la Compra -->
+            <div style="padding:15px; border-radius:8px; background:var(--background-hover); border:1px solid var(--border-color);">
+                <h4 style="font-size:14px; font-weight:700; color:var(--text-primary); margin-bottom:12px; display:flex; align-items:center; gap:6px;">
+                    <i class='bx bx-info-circle' style="color:var(--accent-color);"></i> General
+                </h4>
+                <div style="display:flex; flex-direction:column; gap:8px;">
+                    <div style="display:flex; justify-content:space-between; font-size:12px;">
+                        <span style="color:var(--text-secondary);">ID:</span>
+                        <strong style="color:var(--text-primary); font-family:monospace;">{{ compra.id_compra|truncatechars:10 }}</strong>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; font-size:12px;">
+                        <span style="color:var(--text-secondary);">Fecha:</span>
+                        <strong style="color:var(--text-primary);">{{ compra.fecha|date:"d/m/Y" }}</strong>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; font-size:12px;">
+                        <span style="color:var(--text-secondary);">Tipo Cambio:</span>
+                        <strong style="color:var(--text-primary);">Bs. {{ compra.tipo_cambio_valor }}</strong>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; font-size:12px;">
+                        <span style="color:var(--text-secondary);">Estado:</span>
+                        {% if compra.estado %}
+                            <span class="status entregado" style="font-size:10px; padding:2px 6px; border-radius:4px;">Completada</span>
+                        {% else %}
+                            <span class="status cancelado" style="font-size:10px; padding:2px 6px; border-radius:4px;">Anulada</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información del Proveedor -->
+            <div style="padding:15px; border-radius:8px; background:var(--background-hover); border:1px solid var(--border-color);">
+                <h4 style="font-size:14px; font-weight:700; color:var(--text-primary); margin-bottom:12px; display:flex; align-items:center; gap:6px;">
+                    <i class='bx bxs-truck' style="color:var(--accent-color);"></i> Proveedor
+                </h4>
+                <div style="display:flex; flex-direction:column; gap:8px;">
+                    <div style="display:flex; justify-content:space-between; font-size:12px;">
+                        <span style="color:var(--text-secondary);">Nombre:</span>
+                        <strong style="color:var(--text-primary);">{{ compra.proveedor.nombre }}</strong>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; font-size:12px;">
+                        <span style="color:var(--text-secondary);">Teléfono:</span>
+                        <strong style="color:var(--text-primary);">{{ compra.proveedor.telefono }}</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información de Registro -->
+            <div style="padding:15px; border-radius:8px; background:var(--background-hover); border:1px solid var(--border-color);">
+                <h4 style="font-size:14px; font-weight:700; color:var(--text-primary); margin-bottom:12px; display:flex; align-items:center; gap:6px;">
+                    <i class='bx bx-user-check' style="color:var(--accent-color);"></i> Registrado por
+                </h4>
+                <div style="display:flex; flex-direction:column; gap:8px;">
+                    <div style="display:flex; justify-content:space-between; font-size:12px;">
+                        <span style="color:var(--text-secondary);">Usuario:</span>
+                        <strong style="color:var(--text-primary);">{{ compra.usuario.nombre }}</strong>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; font-size:12px;">
+                        <span style="color:var(--text-secondary);">Rol:</span>
+                        <strong style="color:var(--text-primary); text-transform:capitalize;">{{ compra.usuario.rol.nombre }}</strong>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; font-size:12px;">
+                        <span style="color:var(--text-secondary);">Hora:</span>
+                        <strong style="color:var(--text-primary);">{{ compra.created_at|date:"H:i" }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Observación (si aplica) -->
+        {% if compra.observacion %}
+        <div style="padding:12px; border-radius:6px; background:var(--background-hover); border-left: 4px solid var(--accent-color); margin-bottom: 20px;">
+            <span style="color:var(--text-secondary); font-size:12px; display:block; margin-bottom:4px; font-weight:600;">Observación:</span>
+            <p style="color:var(--text-primary); font-size:13px; margin:0; line-height:1.4;">{{ compra.observacion }}</p>
+        </div>
+        {% endif %}
+
+        <!-- Details Table -->
+        <h4 style="font-size:14px; font-weight:700; color:var(--text-primary); margin-bottom:10px;">Productos Adquiridos</h4>
+        <div class="table-responsive" style="max-height: 250px; overflow-y: auto; margin-bottom: 20px;">
+            <table class="table-details" style="width: 100%;">
+                <thead>
+                    <tr>
+                        <th style="text-align: left;">Producto</th>
+                        <th style="text-align: center;">Cantidad</th>
+                        <th style="text-align: right;">Precio Compra (USD)</th>
+                        <th style="text-align: right;">Subtotal (USD)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for detalle in compra.detallecompra_set.all %}
+                    <tr>
+                        <td style="text-align: left; vertical-align: middle;">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <div style="width:30px; height:30px; border-radius:4px; background:#F7F9FC; display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0;">
+                                    {% if detalle.producto.imagen %}
+                                        <img src="/media/{{ detalle.producto.imagen }}" style="width:100%; height:100%; object-fit:cover;" alt="">
+                                    {% else %}
+                                        <i class='bx bx-package' style="color:#AFCBFF; font-size:14px;"></i>
+                                    {% endif %}
+                                </div>
+                                <span style="font-size: 13px;">{{ detalle.producto.nombre }}</span>
+                            </div>
+                        </td>
+                        <td style="text-align: center; font-size: 13px;">{{ detalle.cantidad }}</td>
+                        <td style="text-align: right; font-size: 13px;">USD {{ detalle.precio_compra }}</td>
+                        <td style="text-align: right; font-weight: 600; font-size: 13px;">USD {{ detalle.subtotal }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div style="text-align: right; margin-top: 15px;">
+            <h3 style="color:#B22222; font-size:18px; font-weight:700; margin: 0;">Total Compra: USD {{ compra.total }} (Bs. {{ compra.total_bs|floatformat:2 }})</h3>
+        </div>
+
+        <div style="text-align: right; margin-top: 25px;">
+            <button type="button" class="btn-secondary" onclick="cerrarModal('modalVerCompra{{ compra.id_compra }}')">Cerrar</button>
+        </div>
+    </div>
+</div>

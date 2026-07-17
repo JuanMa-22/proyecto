@@ -1,0 +1,22 @@
+<div id="modalCrearTipoMovimiento" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="cerrarModal('modalCrearTipoMovimiento')">&times;</span>
+        <h3 class="card-title" style="margin-bottom: 20px;">Crear Tipo de Movimiento</h3>
+        
+        <form action="{% url 'tipoMovimiento:crear' %}" method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>Tipo de Movimiento</label>
+                <select name="nombre" class="form-control" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                    <option value="ENTRADA">Entrada</option>
+                    <option value="SALIDA">Salida</option>
+                </select>
+            </div>
+            
+            <div style="text-align: right; margin-top: 25px;">
+                <button type="button" class="btn-secondary" onclick="cerrarModal('modalCrearTipoMovimiento')">Cancelar</button>
+                <button type="submit" class="btn-primary">Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>

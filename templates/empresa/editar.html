@@ -1,0 +1,189 @@
+{% load l10n %}
+<div id="modalEditarEmpresa" class="modal">
+    <div class="modal-content" style="max-width: 600px; width: 95%;">
+        <span class="close" onclick="cerrarModal('modalEditarEmpresa')">&times;</span>
+        <h3 class="card-title" style="margin-bottom: 20px;">Editar Información de la Empresa</h3>
+
+        <form action="{% url 'empresa:editar' empresa.id_empresa %}" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label>Nombre de la Empresa</label>
+                <input type="text" name="nombre" value="{{ empresa.nombre }}" required 
+                       pattern="^[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s\.\,\-\&]+$" 
+                       title="Solo se permiten letras, números y signos comunes (.,-&)">
+            </div>
+
+            <div class="form-group" style="display: flex; gap: 15px;">
+                <div style="flex: 1;">
+                    <label>NIT / Identificación Tributaria</label>
+                    <input type="text" name="nit" value="{{ empresa.nit }}" required 
+                           pattern="^[0-9]+$" title="Solo se permiten números" inputmode="numeric">
+                </div>
+                <div style="flex: 1;">
+                    <label>Ciudad</label>
+                    <input type="text" name="ciudad" value="{{ empresa.ciudad }}" required 
+                           pattern="^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$" title="Solo se permiten letras">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Dirección Física</label>
+                <input type="text" name="direccion" value="{{ empresa.direccion }}" required>
+            </div>
+
+            <div class="form-group" style="display: flex; gap: 15px;">
+                <div style="flex: 1;">
+                    <label>Teléfono / Celular</label>
+                    <input type="text" name="telefono" value="{{ empresa.telefono }}" required 
+                           pattern="^[0-9\+\-\s]+$" title="Solo se permiten números, espacios y signos + o -">
+                </div>
+                <div style="flex: 1;">
+                    <label>Correo Electrónico</label>
+                    <input type="email" name="email" value="{{ empresa.email }}" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Enlace de Google Maps (Compartir)</label>
+                <input type="url" name="google_maps_link" value="{{ empresa.google_maps_link|default:'' }}" placeholder="https://maps.app.goo.gl/... o https://google.com/maps/...">
+            </div>
+
+            <div class="form-group">
+                <label>Seleccionar Ubicación en el Mapa</label>
+                <div id="mapa-selector-edit" style="height: 250px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 10px; z-index: 1;"></div>
+                <small style="color: var(--text-secondary);">Haga clic en el mapa o arrastre el marcador para rellenar las coordenadas automáticamente.</small>
+            </div>
+
+            <div class="form-group" style="display: flex; gap: 15px;">
+                <div style="flex: 1;">
+                    <label>Latitud</label>
+                    <input type="number" step="0.000000000000001" name="latitud" value="{{ empresa.latitud|unlocalize|default:'' }}" placeholder="Ej: -16.498843">
+                </div>
+                <div style="flex: 1;">
+                    <label>Longitud</label>
+                    <input type="number" step="0.000000000000001" name="longitud" value="{{ empresa.longitud|unlocalize|default:'' }}" placeholder="Ej: -68.135124">
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 20px;">
+                <label>Logo de la Empresa</label>
+                {% if empresa.logo %}
+                    <div style="display: flex; gap: 15px; align-items: center; margin-bottom: 10px; padding: 10px; border: 1px solid var(--border-color); border-radius: 4px; background-color: var(--background-hover);">
+                        <img src="{{ empresa.logo.url }}" alt="Logo actual" style="max-height: 60px; max-width: 100px; border-radius: 4px; background-color: #fff; padding: 3px;">
+                        <span style="font-size: 13px; color: var(--text-secondary);">Logo actual</span>
+                    </div>
+                {% endif %}
+                <input type="file" name="logo" accept="image/*">
+                <small style="color: var(--text-secondary); display: block; margin-top: 5px;">Deje en blanco si desea conservar el logo actual.</small>
+            </div>
+
+            <div style="text-align: right; margin-top: 30px;">
+                <button type="button" class="btn-secondary" onclick="cerrarModal('modalEditarEmpresa')">Cancelar</button>
+                <button type="submit" class="btn-primary">Guardar Cambios</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        let mapEdit = null;
+        let markerEdit = null;
+        
+        // Escuchar el clic en el botón de edición para inicializar el mapa al abrirse el modal
+        const btnEditar = document.querySelector('[onclick="abrirModal(\'modalEditarEmpresa\')"]');
+        if (btnEditar) {
+            btnEditar.addEventListener('click', function() {
+                // Esperar a que la transición de entrada del modal se complete (el contenedor sea visible)
+                setTimeout(initMapSelectorEdit, 300);
+            });
+        }
+        
+        // Función para guardar automáticamente las coordenadas vía AJAX
+        function autoGuardarCoordenadas(lat, lng) {
+            const csrfToken = document.querySelector('#modalEditarEmpresa [name="csrfmiddlewaretoken"]').value;
+            const url = "{% url 'empresa:guardar_coordenadas' empresa.id_empresa %}";
+            
+            $.ajax({
+                url: url,
+                type: 'POST',
+                data: {
+                    'latitud': lat,
+                    'longitud': lng,
+                    'csrfmiddlewaretoken': csrfToken
+                },
+                success: function(response) {
+                    if (response.success) {
+                        window.coordenadasActualizadas = true;
+                        
+                        // Mostrar un toast de notificación rápido y elegante
+                        if (typeof Swal !== 'undefined') {
+                            const Toast = Swal.mixin({
+                                toast: true,
+                                position: 'top-end',
+                                showConfirmButton: false,
+                                timer: 2000,
+                                timerProgressBar: true
+                            });
+                            Toast.fire({
+                                icon: 'success',
+                                title: response.message
+                            });
+                        }
+                    }
+                },
+                error: function(xhr) {
+                    console.error("Error al guardar coordenadas automáticamente:", xhr);
+                }
+            });
+        }
+        
+        function initMapSelectorEdit() {
+            let lat = parseFloat(document.querySelector('#modalEditarEmpresa [name="latitud"]').value) || -16.498843;
+            let lng = parseFloat(document.querySelector('#modalEditarEmpresa [name="longitud"]').value) || -68.135124;
+            
+            const mapDiv = document.getElementById('mapa-selector-edit');
+            if (!mapDiv) return;
+            
+            if (mapEdit === null) {
+                mapEdit = L.map('mapa-selector-edit').setView([lat, lng], 15);
+                
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap'
+                }).addTo(mapEdit);
+                
+                // Crear marcador arrastrable
+                markerEdit = L.marker([lat, lng], { draggable: true }).addTo(mapEdit);
+                
+                // Actualizar inputs al arrastrar el marcador
+                markerEdit.on('dragend', function (e) {
+                    const position = markerEdit.getLatLng();
+                    const latVal = position.lat.toFixed(15);
+                    const lngVal = position.lng.toFixed(15);
+                    document.querySelector('#modalEditarEmpresa [name="latitud"]').value = latVal;
+                    document.querySelector('#modalEditarEmpresa [name="longitud"]').value = lngVal;
+                    
+                    autoGuardarCoordenadas(latVal, lngVal);
+                });
+                
+                // Actualizar inputs al hacer clic en el mapa
+                mapEdit.on('click', function (e) {
+                    const latlng = e.latlng;
+                    const latVal = latlng.lat.toFixed(15);
+                    const lngVal = latlng.lng.toFixed(15);
+                    markerEdit.setLatLng(latlng);
+                    document.querySelector('#modalEditarEmpresa [name="latitud"]').value = latVal;
+                    document.querySelector('#modalEditarEmpresa [name="longitud"]').value = lngVal;
+                    
+                    autoGuardarCoordenadas(latVal, lngVal);
+                });
+            } else {
+                // Si ya fue creado, re-centrar el marcador e invalidar tamaño
+                mapEdit.setView([lat, lng], 15);
+                markerEdit.setLatLng([lat, lng]);
+                mapEdit.invalidateSize();
+            }
+        }
+    });
+</script>

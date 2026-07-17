@@ -1,0 +1,9 @@
+from django.apps import AppConfig
+
+
+class ProductoConfig(AppConfig):
+    default_auto_field = 'django.db.models.BigAutoField'
+    name = 'apps.producto'
+
+    def ready(self):
+        import apps.producto.signals

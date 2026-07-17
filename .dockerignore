@@ -1,0 +1,52 @@
+# --- Python & Django ---
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+ENV/
+pip-log.txt
+pip-delete-this-directory.txt
+.toast
+.cache/
+.pytest_cache/
+.coverage
+htmlcov/
+*.log
+
+# --- Local Databases ---
+*.db
+*.sqlite3
+
+# --- Environment & Credentials ---
+.env
+.env.*
+secrets/
+*.key
+*.pem
+*.cert
+
+# --- IDEs & Editors ---
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+*.swo
+
+# --- Docker & Compose ---
+Dockerfile
+docker-compose*
+.dockerignore
+docker/
+
+# --- Operating Systems ---
+.DS_Store
+Thumbs.db
+
+

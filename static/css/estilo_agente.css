@@ -1,0 +1,459 @@
+/* ==========================================================================
+   ESTILOS PARA EL AGENTE CONVERSACIONAL (SISMEING)
+   ========================================================================== */
+
+:root {
+    --agente-primary: #FF4D00; /* Naranja Sismeing */
+    --agente-primary-hover: #E04400;
+    --agente-bg-dark: #121214;
+    --agente-bg-glass: rgba(20, 20, 25, 0.95);
+    --agente-border: rgba(255, 77, 0, 0.15);
+    --agente-text-main: #f3f4f6;
+    --agente-text-muted: #9ca3af;
+    --agente-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+
+/* --- Botón Flotante --- */
+.agente-floating-btn {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    width: 60px;
+    height: 60px;
+    background-color: var(--agente-primary);
+    color: #ffffff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(255, 77, 0, 0.4);
+    z-index: 1000;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.agente-floating-btn:hover {
+    transform: scale(1.1) rotate(5deg);
+    background-color: var(--agente-primary-hover);
+    box-shadow: 0 6px 24px rgba(255, 77, 0, 0.6);
+}
+
+/* Anillo de pulso animado */
+.agente-floating-btn .pulse-ring {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 3px solid var(--agente-primary);
+    animation: ring-pulse 2s infinite ease-out;
+    opacity: 0;
+    pointer-events: none;
+}
+
+@keyframes ring-pulse {
+    0% {
+        transform: scale(0.95);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(1.5);
+        opacity: 0;
+    }
+}
+
+/* --- Ventana de Chat --- */
+.agente-window {
+    position: fixed;
+    bottom: 100px;
+    right: 25px;
+    width: 420px;
+    height: 600px;
+    background: var(--agente-bg-glass);
+    border: 1px solid var(--agente-border);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 20px;
+    box-shadow: var(--agente-shadow);
+    display: none; /* Controlado por JS */
+    flex-direction: column;
+    overflow: hidden;
+    z-index: 1000;
+    animation: slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slide-up {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* --- Encabezado --- */
+.agente-header {
+    background: rgba(255, 77, 0, 0.08);
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--agente-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.agente-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.agente-avatar {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 77, 0, 0.2);
+    border: 1px solid var(--agente-primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--agente-primary);
+    font-size: 18px;
+}
+
+.agente-avatar .online-indicator {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 10px;
+    height: 10px;
+    background-color: #10b981; /* Verde activo */
+    border: 2px solid var(--agente-bg-dark);
+    border-radius: 50%;
+    animation: pulse-green 1.5s infinite;
+}
+
+@keyframes pulse-green {
+    0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+    70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+.agente-info h4 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--agente-text-main);
+}
+
+.agente-info p {
+    margin: 0;
+    font-size: 11px;
+    color: var(--agente-text-muted);
+}
+
+.agente-close {
+    font-size: 20px;
+    color: var(--agente-text-muted);
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.agente-close:hover {
+    color: var(--agente-primary);
+}
+
+/* --- Botón de Toggle de Voz (TTS) --- */
+.agente-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.agente-tts-toggle {
+    width: 32px;
+    height: 32px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--agente-text-muted);
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s ease;
+}
+
+.agente-tts-toggle:hover {
+    background: rgba(255, 255, 255, 0.10);
+    color: #ffffff;
+}
+
+/* Estado: VOZ ACTIVADA */
+.agente-tts-toggle.active {
+    background: rgba(255, 77, 0, 0.18);
+    border-color: var(--agente-primary);
+    color: var(--agente-primary);
+    box-shadow: 0 0 8px rgba(255, 77, 0, 0.25);
+}
+
+.agente-tts-toggle.active:hover {
+    background: rgba(255, 77, 0, 0.28);
+    box-shadow: 0 0 12px rgba(255, 77, 0, 0.40);
+}
+
+
+/* --- Contenedor de Mensajes --- */
+.agente-messages {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    background: radial-gradient(circle at top right, rgba(255, 77, 0, 0.03), transparent 60%);
+}
+
+/* Scrollbar Personalizado */
+.agente-messages::-webkit-scrollbar {
+    width: 6px;
+}
+
+.agente-messages::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.agente-messages::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+.agente-messages::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 77, 0, 0.3);
+}
+
+/* --- Burbujas de Chat --- */
+.chat-msg {
+    max-width: 85%;
+    display: flex;
+    flex-direction: column;
+    animation: fade-in-msg 0.3s ease-out;
+}
+
+@keyframes fade-in-msg {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.chat-msg .msg-content {
+    padding: 12px 16px;
+    border-radius: 16px;
+    font-size: 13.5px;
+    line-height: 1.5;
+    word-wrap: break-word;
+}
+
+.chat-msg .msg-time {
+    font-size: 10px;
+    color: var(--agente-text-muted);
+    margin-top: 4px;
+    padding: 0 4px;
+}
+
+/* Estilo Bot (Izquierda) */
+.chat-msg.bot {
+    align-self: flex-start;
+}
+
+.chat-msg.bot .msg-content {
+    background-color: rgba(255, 255, 255, 0.06);
+    color: var(--agente-text-main);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-top-left-radius: 4px;
+}
+
+/* Estilo User (Derecha) */
+.chat-msg.user {
+    align-self: flex-end;
+}
+
+.chat-msg.user .msg-content {
+    background-color: var(--agente-primary);
+    color: #ffffff;
+    border-top-right-radius: 4px;
+    box-shadow: 0 2px 10px rgba(255, 77, 0, 0.25);
+}
+
+.chat-msg.user .msg-time {
+    align-self: flex-end;
+}
+
+/* --- Formato de Markdown dentro del Chat --- */
+.msg-content p {
+    margin: 0 0 8px 0;
+}
+.msg-content p:last-child {
+    margin-bottom: 0;
+}
+
+.msg-content ul, .msg-content ol {
+    margin: 4px 0 8px 18px;
+    padding: 0;
+}
+
+.msg-content li {
+    margin-bottom: 4px;
+}
+
+.msg-content strong {
+    color: #ffffff;
+    font-weight: 700;
+}
+
+.chat-msg.user .msg-content strong {
+    color: #ffffff;
+}
+
+/* Tablas markdown en mensajes del bot */
+.msg-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0;
+    font-size: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.msg-content th, .msg-content td {
+    padding: 6px 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: left;
+}
+
+.msg-content th {
+    background-color: rgba(255, 77, 0, 0.15);
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.msg-content tr:nth-child(even) {
+    background-color: rgba(255, 255, 255, 0.02);
+}
+
+/* --- Indicador de Escritura --- */
+.typing-indicator {
+    align-self: flex-start;
+    background-color: rgba(255, 255, 255, 0.06);
+    padding: 12px 18px;
+    border-radius: 16px;
+    border-top-left-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.typing-indicator span {
+    width: 6px;
+    height: 6px;
+    background-color: var(--agente-text-muted);
+    border-radius: 50%;
+    display: inline-block;
+    animation: bounce 1.4s infinite ease-in-out both;
+}
+
+.typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+.typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes bounce {
+    0%, 80%, 100% { transform: scale(0); }
+    40% { transform: scale(1.0); }
+}
+
+/* --- Área de Entrada --- */
+.agente-input-area {
+    padding: 16px 20px;
+    border-top: 1px solid var(--agente-border);
+    background: rgba(10, 10, 12, 0.98);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.agente-input {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--agente-text-main);
+    padding: 11px 16px;
+    border-radius: 12px;
+    font-size: 13px;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.agente-input:focus {
+    border-color: var(--agente-primary);
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 0 8px rgba(255, 77, 0, 0.15);
+}
+
+.agente-mic-btn, .agente-send-btn {
+    width: 38px;
+    height: 38px;
+    border: none;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.agente-mic-btn {
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--agente-text-muted);
+}
+
+.agente-mic-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+}
+
+.agente-mic-btn.listening {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+    animation: pulse-red 1.5s infinite;
+    border: 1px solid #ef4444;
+}
+
+@keyframes pulse-red {
+    0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+    70% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+.agente-send-btn {
+    background: var(--agente-primary);
+    color: #ffffff;
+}
+
+.agente-send-btn:hover {
+    background: var(--agente-primary-hover);
+    transform: translateY(-1px);
+}
+
+/* --- Ajustes Responsivos --- */
+@media (max-width: 480px) {
+    .agente-window {
+        width: calc(100% - 30px);
+        height: calc(100% - 100px);
+        bottom: 85px;
+        right: 15px;
+    }
+}

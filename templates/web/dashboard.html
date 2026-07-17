@@ -1,0 +1,378 @@
+{% extends 'layout/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="dashboard-container">
+
+    <!-- ===== HEADER DE BIENVENIDA ===== -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px; flex-wrap:wrap; gap:10px;">
+        <div>
+            <h2 class="welcome-title">Bienvenido, {{ request.session.usuario_nombre }}</h2>
+            <p style="color:var(--text-secondary); font-size:14px;">Aquí tienes un resumen general de tu sistema.</p>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px; background:#FFFFFF; border:1px solid var(--border-color); padding:10px 18px; border-radius:10px; color:var(--text-secondary); font-size:13px; box-shadow:0 2px 8px rgba(0,0,0,0.05);">
+            <i class='bx bx-calendar' style="color:#F28C28; font-size:16px;"></i>
+            {% now "d \d\e F, Y" %}
+        </div>
+    </div>
+
+    <!-- ===== 5 STAT CARDS ===== -->
+    <div class="dashboard-stats-grid">
+
+        <!-- Ventas Totales -->
+        <div class="stat-card">
+            <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+                <div style="width:44px;height:44px;border-radius:12px;background:rgba(242,140,40,0.12);display:flex;align-items:center;justify-content:center;">
+                    <i class='bx bx-cart-alt' style="font-size:22px;color:#F28C28;"></i>
+                </div>
+                <div>
+                    <p style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-secondary);margin-bottom:2px;">Ventas Totales</p>
+                    <h3 style="font-size:20px;font-weight:700;color:var(--text-primary);">Bs. {{ total_ventas|floatformat:2 }}</h3>
+                </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:4px;font-size:12px;color:#16A34A;">
+                <i class='bx bx-trending-up'></i> {{ total_ventas_count }} transacciones
+            </div>
+            <canvas id="sparkVentas" height="45" style="margin-top:10px;"></canvas>
+        </div>
+
+        {% if es_admin %}
+        <!-- Compras Totales -->
+        <div class="stat-card">
+            <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+                <div style="width:44px;height:44px;border-radius:12px;background:rgba(178,34,34,0.1);display:flex;align-items:center;justify-content:center;">
+                    <i class='bx bx-package' style="font-size:22px;color:#B22222;"></i>
+                </div>
+                <div>
+                    <p style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-secondary);margin-bottom:2px;">Compras Totales</p>
+                    <h3 style="font-size:20px;font-weight:700;color:var(--text-primary);">Bs. {{ total_compras|floatformat:2 }}</h3>
+                </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:4px;font-size:12px;color:#B22222;">
+                <i class='bx bx-trending-down'></i> Gastos registrados
+            </div>
+            <canvas id="sparkCompras" height="45" style="margin-top:10px;"></canvas>
+        </div>
+        {% endif %}
+
+        <!-- Productos -->
+        <div class="stat-card">
+            <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+                <div style="width:44px;height:44px;border-radius:12px;background:rgba(175,203,255,0.25);display:flex;align-items:center;justify-content:center;">
+                    <i class='bx bx-box' style="font-size:22px;color:#3B6FD4;"></i>
+                </div>
+                <div>
+                    <p style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-secondary);margin-bottom:2px;">Productos Activos</p>
+                    <h3 style="font-size:20px;font-weight:700;color:var(--text-primary);">{{ total_productos }}</h3>
+                </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:4px;font-size:12px;color:#3B6FD4;">
+                <i class='bx bx-store'></i> En inventario
+            </div>
+            <canvas id="sparkProductos" height="45" style="margin-top:10px;"></canvas>
+        </div>
+
+        <!-- Clientes -->
+        <div class="stat-card">
+            <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+                <div style="width:44px;height:44px;border-radius:12px;background:rgba(124,58,237,0.1);display:flex;align-items:center;justify-content:center;">
+                    <i class='bx bxs-group' style="font-size:22px;color:#7C3AED;"></i>
+                </div>
+                <div>
+                    <p style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-secondary);margin-bottom:2px;">Clientes Totales</p>
+                    <h3 style="font-size:20px;font-weight:700;color:var(--text-primary);">{{ total_clientes }}</h3>
+                </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:4px;font-size:12px;color:#7C3AED;">
+                <i class='bx bx-user-check'></i> Clientes registrados
+            </div>
+            <canvas id="sparkClientes" height="45" style="margin-top:10px;"></canvas>
+        </div>
+
+        {% if es_admin %}
+        <!-- Ganancias (Utilidad Contable) -->
+        <div class="stat-card card-gradient">
+            <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+                <div style="width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;">
+                    <i class='bx bx-dollar-circle' style="font-size:22px;color:#fff;"></i>
+                </div>
+                <div>
+                    <p style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,0.8);margin-bottom:2px;">Utilidad Contable</p>
+                    <h3 style="font-size:20px;font-weight:700;color:#fff;">Bs. {{ ganancias|floatformat:2 }}</h3>
+                </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:2px;font-size:11px;color:rgba(255,255,255,0.9);">
+                <div><i class='bx bx-refresh'></i> Reposición: <b>Bs. {{ ganancias_reposicion|floatformat:2 }}</b></div>
+                <div><i class='bx bx-pie-chart-alt-2'></i> Margen Promedio: <b>{{ margen_promedio|floatformat:1 }}%</b></div>
+            </div>
+            <canvas id="sparkGanancias" height="40" style="margin-top:10px;"></canvas>
+        </div>
+
+        <!-- Inversión de Inventario Activo -->
+        <div class="stat-card">
+            <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+                <div style="width:44px;height:44px;border-radius:12px;background:rgba(242,140,40,0.12);display:flex;align-items:center;justify-content:center;">
+                    <i class='bx bx-coin-stack' style="font-size:22px;color:#F28C28;"></i>
+                </div>
+                <div>
+                    <p style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-secondary);margin-bottom:2px;">Inventario (Costo)</p>
+                    <h3 style="font-size:20px;font-weight:700;color:var(--text-primary);">USD {{ inventario_usd|floatformat:2 }}</h3>
+                </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text-secondary);">
+                <i class='bx bx-calculator'></i> Equivale a Bs. {{ inventario_bs|floatformat:2 }}
+            </div>
+            <canvas id="sparkInventario" height="45" style="margin-top:10px;"></canvas>
+        </div>
+        {% endif %}
+
+    </div>
+
+    <!-- ===== FILA: GRÁFICO GRANDE + DONA ===== -->
+    <div class="dashboard-row" style="margin-bottom:24px;">
+
+        <!-- Gráfico Ventas 7 días -->
+        <div style="background:#FFFFFF; border-radius:14px; padding:24px; border:1px solid var(--border-color); box-shadow:0 2px 10px rgba(0,0,0,0.04);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h3 style="font-size:15px; font-weight:700; color:var(--text-primary);">Ventas en los últimos 7 días</h3>
+                <span style="font-size:12px; background:#FFF3E0; color:#F28C28; padding:5px 12px; border-radius:20px; font-weight:600;">Últimos 7 días</span>
+            </div>
+            <div style="height:260px;">
+                <canvas id="ventasChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Distribución de categorías -->
+        <div style="background:#FFFFFF; border-radius:14px; padding:24px; border:1px solid var(--border-color); box-shadow:0 2px 10px rgba(0,0,0,0.04);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                <h3 style="font-size:15px; font-weight:700; color:var(--text-primary);">Distribución de Categorías</h3>
+                {% if es_admin %}
+                <a href="{% url 'categoria:index' %}" style="font-size:12px; color:#F28C28; font-weight:600; text-decoration:none;">Ver todos</a>
+                {% endif %}
+            </div>
+            <div style="height:180px; display:flex; align-items:center; justify-content:center;">
+                <canvas id="donaChart"></canvas>
+            </div>
+            <div id="donaLeyenda" style="margin-top:14px; display:flex; flex-direction:column; gap:6px;"></div>
+        </div>
+    </div>
+
+    <!-- ===== FILA: TOP PRODUCTOS + BAJO STOCK ===== -->
+    <div class="dashboard-row-equal" style="margin-bottom:24px;">
+        
+        <!-- Productos más vendidos -->
+        <div style="background:#FFFFFF; border-radius:14px; padding:24px; border:1px solid var(--border-color); box-shadow:0 2px 10px rgba(0,0,0,0.04);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h3 style="font-size:15px; font-weight:700; color:var(--text-primary);">Productos más vendidos</h3>
+                <a href="{% url 'producto:index' %}" style="font-size:12px; color:#F28C28; font-weight:600; text-decoration:none;">Ver todos</a>
+            </div>
+
+            {% if top_productos %}
+            {% for p in top_productos %}
+            <div style="display:flex; align-items:center; gap:14px; padding:10px 0; border-bottom:1px solid var(--border-color);">
+                <div style="width:42px; height:42px; border-radius:10px; background:#F7F9FC; display:flex; align-items:center; justify-content:center; flex-shrink:0; overflow:hidden;">
+                    {% if p.producto__imagen %}
+                        <img src="/media/{{ p.producto__imagen }}" style="width:100%; height:100%; object-fit:cover;" alt="">
+                    {% else %}
+                        <i class='bx bx-package' style="color:#AFCBFF; font-size:20px;"></i>
+                    {% endif %}
+                </div>
+                <div style="flex:1;">
+                    <p style="font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:5px;">{{ p.producto__nombre }}</p>
+                    <div style="background:#F7F9FC; border-radius:6px; height:6px; overflow:hidden;">
+                        <div style="height:100%; background:linear-gradient(90deg,#F28C28,#FF9F43); border-radius:6px; width:{{ p.total_vendido }}%;"></div>
+                    </div>
+                </div>
+                <span style="font-size:13px; font-weight:700; color:var(--text-secondary); white-space:nowrap;">{{ p.total_vendido }} uds.</span>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div style="text-align:center; padding:30px; color:var(--text-secondary);">
+                <i class='bx bx-package' style="font-size:40px; margin-bottom:10px; opacity:0.3;"></i>
+                <p>No hay datos de ventas aún.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Alertas de Stock Bajo -->
+        <div style="background:#FFFFFF; border-radius:14px; padding:24px; border:1px solid var(--border-color); box-shadow:0 2px 10px rgba(0,0,0,0.04);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h3 style="font-size:15px; font-weight:700; color:var(--text-primary);">Stock Crítico (< 10)</h3>
+                <span style="font-size:12px; background:#FFF5F5; color:#B22222; padding:4px 10px; border-radius:8px; font-weight:600;">Alertas</span>
+            </div>
+
+            {% if productos_bajo_stock %}
+            {% for p in productos_bajo_stock %}
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border-color);">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <div style="width:36px; height:36px; border-radius:8px; background:rgba(178,34,34,0.1); display:flex; align-items:center; justify-content:center; color:#B22222;">
+                        <i class='bx bx-error-alt'></i>
+                    </div>
+                    <div>
+                        <p style="font-size:13px; font-weight:600; color:var(--text-primary);">{{ p.nombre }}</p>
+                        <p style="font-size:11px; color:var(--text-secondary);">Ref: {{ p.id_producto|stringformat:".8s" }}</p>
+                    </div>
+                </div>
+                <div style="text-align:right;">
+                    <span style="display:block; font-size:14px; font-weight:700; color:#B22222;">{{ p.stock }}</span>
+                    <span style="display:block; font-size:10px; color:var(--text-secondary); text-transform:uppercase;">Unidades</span>
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div style="text-align:center; padding:30px; color:var(--text-secondary);">
+                <i class='bx bx-check-circle' style="font-size:40px; margin-bottom:10px; color:#16A34A; opacity:0.5;"></i>
+                <p>Todo el stock está al día.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    <!-- ===== FOOTER ===== -->
+    <div style="text-align:center; margin-top:40px; padding-bottom:20px; color:var(--text-secondary); font-size:12px;">
+        &copy; 2025 <span style="color:#B22222; font-weight:600;">Sismeing Computers</span>. Todos los derechos reservados.
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    // ===== DATOS DEL SERVIDOR =====
+    const labels7d = {{ chart_labels|safe }};
+    const data7d   = {{ chart_data|safe }};
+    const catLabels = {{ cat_labels|safe }};
+    const catData   = {{ cat_data|safe }};
+
+    // ===== PALETA DE COLORES =====
+    const COLORS = ['#F28C28','#B22222','#3B6FD4','#7C3AED','#16A34A','#FF9F43'];
+
+    // ===== SPARKLINES (mini gráficos en tarjetas) =====
+    function crearSparkline(id, color, data) {
+        const ctx = document.getElementById(id);
+        if (!ctx) return;
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels7d,
+                datasets: [{ data: data, borderColor: color, borderWidth: 2, pointRadius: 0, fill: false, tension: 0.4 }]
+            },
+            options: { responsive: true, plugins: { legend: { display: false }, tooltip: { enabled: false } }, scales: { x: { display: false }, y: { display: false } } }
+        });
+    }
+
+    crearSparkline('sparkVentas',   '#F28C28', data7d);
+    crearSparkline('sparkCompras',  '#B22222', data7d.map(v => v * 0.6));
+    crearSparkline('sparkProductos','#3B6FD4', [5,6,5,7,8,7,{{ total_productos }}]);
+    crearSparkline('sparkClientes', '#7C3AED', [2,3,4,3,5,4,{{ total_clientes }}]);
+    crearSparkline('sparkGanancias','#ffffff', data7d.map(v => v * 0.4));
+    crearSparkline('sparkInventario','#F28C28', [4,3,5,4,6,5,{{ inventario_usd }}]);
+
+    // ===== GRÁFICO PRINCIPAL 7 DÍAS =====
+    const ctxMain = document.getElementById('ventasChart').getContext('2d');
+    const grad = ctxMain.createLinearGradient(0, 0, 0, 260);
+    grad.addColorStop(0, 'rgba(242,140,40,0.3)');
+    grad.addColorStop(1, 'rgba(242,140,40,0.0)');
+
+    new Chart(ctxMain, {
+        type: 'line',
+        data: {
+            labels: labels7d,
+            datasets: [{
+                label: 'Ventas (Bs.)',
+                data: data7d,
+                borderColor: '#F28C28',
+                backgroundColor: grad,
+                borderWidth: 3,
+                pointBackgroundColor: '#fff',
+                pointBorderColor: '#F28C28',
+                pointBorderWidth: 2,
+                pointRadius: 5,
+                pointHoverRadius: 7,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#fff',
+                    titleColor: '#2B2B2B',
+                    bodyColor: '#6B7280',
+                    borderColor: '#E4E9F2',
+                    borderWidth: 1,
+                    padding: 10,
+                    displayColors: false,
+                    callbacks: { label: ctx => 'Bs. ' + ctx.raw.toFixed(2) }
+                }
+            },
+            scales: {
+                x: { grid: { display: false }, ticks: { color: '#6B7280', font: { size: 12 } } },
+                y: {
+                    grid: { color: '#F0F4F8', borderDash: [4, 4] },
+                    ticks: {
+                        color: '#6B7280',
+                        font: { size: 12 },
+                        callback: v => 'Bs. ' + v
+                    }
+                }
+            }
+        }
+    });
+
+    // ===== GRÁFICO DONA CATEGORÍAS =====
+    const ctxDona = document.getElementById('donaChart');
+    if (ctxDona && catData.length > 0) {
+        new Chart(ctxDona, {
+            type: 'doughnut',
+            data: {
+                labels: catLabels,
+                datasets: [{
+                    data: catData,
+                    backgroundColor: COLORS,
+                    borderWidth: 0,
+                    hoverOffset: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '68%',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#fff',
+                        titleColor: '#2B2B2B',
+                        bodyColor: '#6B7280',
+                        borderColor: '#E4E9F2',
+                        borderWidth: 1,
+                        padding: 10
+                    }
+                }
+            }
+        });
+
+        // Leyenda manual
+        const leyenda = document.getElementById('donaLeyenda');
+        const total = catData.reduce((a, b) => a + b, 0);
+        catLabels.forEach((lbl, i) => {
+            const pct = total > 0 ? Math.round((catData[i] / total) * 100) : 0;
+            leyenda.innerHTML += `
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <span style="width:10px;height:10px;border-radius:50%;background:${COLORS[i]};display:inline-block;flex-shrink:0;"></span>
+                        <span style="font-size:12px;color:var(--text-primary);">${lbl}</span>
+                    </div>
+                    <span style="font-size:12px;font-weight:700;color:var(--text-secondary);">${pct}%</span>
+                </div>`;
+        });
+    } else if (ctxDona) {
+        document.getElementById('donaLeyenda').innerHTML = '<p style="font-size:13px;color:var(--text-secondary);text-align:center;">Sin datos aún.</p>';
+    }
+
+});
+</script>
+{% endblock %}

@@ -1,0 +1,91 @@
+<!-- ══ Modal Especificaciones Técnicas ══ -->
+<div id="modalEspecificaciones" class="modal">
+    <div class="modal-content" style="max-width: 600px; padding: 32px;">
+        <span class="close" onclick="cerrarModal('modalEspecificaciones')">&times;</span>
+
+        <!-- Cabecera del modal -->
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(124,58,237,0.12); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <i class='bx bx-chip' style="font-size: 26px; color: var(--purple-color);"></i>
+            </div>
+            <div>
+                <h3 style="font-size: 16px; font-weight: 700; margin: 0;">Especificaciones Técnicas</h3>
+                <p style="font-size: 13px; color: var(--text-secondary); margin: 4px 0 0;" id="subtituloEspec"></p>
+            </div>
+        </div>
+
+        <!-- Cuerpo con los campos (se rellena dinámicamente) -->
+        <div id="cuerpoEspec" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+        </div>
+
+        <!-- Mensaje: sin especificaciones -->
+        <div id="sinEspec" style="display: none; text-align: center; padding: 30px 0;">
+            <i class='bx bx-info-circle' style="font-size: 40px; color: var(--text-secondary);"></i>
+            <p style="color: var(--text-secondary); margin-top: 10px; font-size: 14px;">
+                No hay especificaciones disponibles para este producto todavía.
+            </p>
+        </div>
+
+        <div style="text-align: right; margin-top: 24px;">
+            <button class="btn-secondary" onclick="cerrarModal('modalEspecificaciones')">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const ETIQUETAS_ESPEC = {
+    socket:        { label: 'Socket',          icon: 'bx-chip',        color: '#7C3AED' },
+    chipset:       { label: 'Chipset',          icon: 'bx-microchip',   color: '#1D4ED8' },
+    tipo_ram:      { label: 'Tipo de RAM',      icon: 'bx-memory-card', color: '#0F766E' },
+    vram:          { label: 'VRAM',             icon: 'bx-memory-card', color: '#9333EA' },
+    watts:         { label: 'Consumo (Watts)',  icon: 'bx-bolt-circle', color: '#B45309' },
+    velocidad_ram: { label: 'Velocidad RAM',    icon: 'bx-tachometer',  color: '#047857' },
+    almacenamiento:{ label: 'Almacenamiento',   icon: 'bx-hdd',         color: '#0369A1' },
+    pci:           { label: 'PCI',              icon: 'bx-transfer',    color: '#B22222' },
+};
+
+function verEspecificaciones(url, nombre) {
+    document.getElementById('subtituloEspec').textContent = nombre;
+    document.getElementById('cuerpoEspec').innerHTML =
+        '<div style="grid-column:1/-1; text-align:center; padding:20px 0; color:var(--text-secondary);">' +
+        '<i class="bx bx-loader-alt bx-spin" style="font-size:28px;"></i></div>';
+    document.getElementById('sinEspec').style.display = 'none';
+    abrirModal('modalEspecificaciones');
+
+    fetch(url)
+        .then(res => res.json())
+        .then(datos => {
+            const cuerpo = document.getElementById('cuerpoEspec');
+            const camposSpec = ['socket','chipset','tipo_ram','vram','watts','velocidad_ram','almacenamiento','pci'];
+            const tieneDatos = camposSpec.some(c => datos[c]);
+
+            if (!tieneDatos) {
+                cuerpo.innerHTML = '';
+                document.getElementById('sinEspec').style.display = 'block';
+                return;
+            }
+
+            cuerpo.innerHTML = camposSpec.map(campo => {
+                const meta      = ETIQUETAS_ESPEC[campo];
+                const valor     = datos[campo];
+                const bgAlpha   = valor ? '0.10' : '0.04';
+                const textColor = valor ? meta.color : 'var(--text-secondary)';
+                const valorText = valor
+                    ? valor
+                    : '<span style="font-style:italic; font-size:11px;">No especificado</span>';
+                return `
+                    <div style="background:rgba(0,0,0,${bgAlpha}); border:1px solid rgba(0,0,0,0.07); border-radius:10px; padding:14px 16px;">
+                        <div style="display:flex; align-items:center; gap:7px; margin-bottom:6px;">
+                            <i class="bx ${meta.icon}" style="font-size:16px; color:${meta.color};"></i>
+                            <span style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.6px; color:var(--text-secondary);">${meta.label}</span>
+                        </div>
+                        <div style="font-size:14px; font-weight:600; color:${textColor};">${valorText}</div>
+                    </div>`;
+            }).join('');
+        })
+        .catch(() => {
+            document.getElementById('cuerpoEspec').innerHTML =
+                '<p style="color:var(--red-color); grid-column:1/-1; text-align:center;">Error al cargar las especificaciones.</p>';
+        });
+}
+</script>

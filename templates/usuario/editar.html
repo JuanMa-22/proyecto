@@ -1,0 +1,58 @@
+<div id="modalEditar{{ item.id_usuario }}" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="cerrarModal('modalEditar{{ item.id_usuario }}')">&times;</span>
+        <h3 class="card-title" style="margin-bottom: 20px;">Editar Usuario</h3>
+        
+        <form action="{% url 'usuario:editar' item.id_usuario %}" method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>Nombre</label>
+                <input type="text" name="nombre" value="{{ item.nombre }}" required pattern="^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$" title="Solo se permiten letras">
+            </div>
+            <div class="form-group">
+                <label>Apellido</label>
+                <input type="text" name="apellido" value="{{ item.apellido }}" required pattern="^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$" title="Solo se permiten letras">
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" name="email" value="{{ item.email }}" required>
+            </div>
+            <div class="form-group">
+                <label>Teléfono</label>
+                <input type="text" name="telefono" value="{{ item.telefono }}" required pattern="^[0-9]+$" title="Solo se permiten números" inputmode="numeric">
+            </div>
+            <div class="form-group">
+                <label>Dirección</label>
+                <input type="text" name="direccion" value="{{ item.direccion }}" required>
+            </div>
+            <div class="form-group">
+                <label>CI</label>
+                <input type="text" name="ci" value="{{ item.ci }}" required pattern="^[0-9]+$" title="Solo se permiten números" inputmode="numeric">
+            </div>
+            <div class="form-group">
+                <label>Usuario</label>
+                <input type="text" name="usuario" value="{{ item.usuario }}" required>
+            </div>
+            <div class="form-group">
+                <label>Contraseña (Dejar en blanco para mantener la actual)</label>
+                <input type="password" name="password" 
+                       pattern="^(?=.*[a-zA-ZáéíóúÁÉÍÓÚñÑ])(?=.*\d).{8,}$" 
+                       title="La contraseña debe tener al menos 8 caracteres y contener letras y números.">
+            </div>
+
+            <div class="form-group">
+                <label>Rol</label>
+                <select name="rol" required>
+                    {% for r in roles %}
+                        <option value="{{ r.id_rol }}" {% if item.rol == r.id_rol %}selected{% endif %}>{{ r.nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+                    
+            <div style="text-align: right; margin-top: 25px;">
+                <button type="button" class="btn-secondary" onclick="cerrarModal('modalEditar{{ item.id_usuario }}')">Cancelar</button>
+                <button type="submit" class="btn-primary">Guardar Cambios</button>
+            </div>
+        </form>
+    </div>
+</div>

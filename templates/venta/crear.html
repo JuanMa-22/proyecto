@@ -1,0 +1,367 @@
+<div id="modalCrearVenta" class="modal modal-lg">
+    <div class="modal-content">
+        <span class="close" onclick="cerrarModal('modalCrearVenta')">&times;</span>
+        <h3 class="card-title" style="margin-bottom: 20px;">Nueva Venta</h3>
+        
+        <form action="{% url 'venta:crear' %}" method="POST" id="formVenta">
+            {% csrf_token %}
+            <div style="display: flex; gap: 15px;">
+                <div class="form-group" style="flex: 2;">
+                    <label>Cliente</label>
+                    <div style="display: flex; gap: 10px;">
+                        <select name="cliente" id="selectCliente" required>
+                            <option value="">Seleccione un cliente...</option>
+                            {% for cli in clientes %}
+                                <option value="{{ cli.id_cliente }}">{{ cli.nombre }} {{ cli.apellido }} - CI: {{ cli.ci }}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="button" class="btn-primary" onclick="abrirModalCliente()" title="Nuevo Cliente"><i class='bx bx-plus'></i></button>
+                    </div>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>Fecha</label>
+                    <input type="date" name="fecha" required value="{% now 'Y-m-d' %}" min="{% now 'Y-m-d' %}">
+                </div>
+            </div>
+
+            <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 20px 0;">
+
+            <h4 style="margin-bottom: 15px;">Agregar Productos</h4>
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label>Producto</label>
+                <select id="prodVentaSelect">
+                    <option value="">Seleccione...</option>
+                    {% regroup productos by categoria as productos_por_categoria %}
+                    {% for grupo in productos_por_categoria %}
+                        <optgroup label="{{ grupo.grouper.nombre }}">
+                            {% for prod in grupo.list %}
+                                <option value="{{ prod.id_producto }}" data-nombre="[{{ prod.categoria.nombre }}] {{ prod.nombre }}" data-precio="{{ prod.precio_actual|stringformat:".2f" }}" data-stock="{{ prod.stock|stringformat:"d" }}">
+                                    {{ prod.nombre }} (Stock: {{ prod.stock }})
+                                </option>
+                            {% endfor %}
+                        </optgroup>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div style="display: flex; gap: 15px; align-items: flex-end; margin-bottom: 20px;">
+                <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                    <label>Cantidad</label>
+                    <input type="number" id="prodVentaCantidad" min="1" value="1">
+                </div>
+                <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                    <label>Precio Unit. (Bs)</label>
+                    <input type="number" step="0.01" id="prodVentaPrecio" min="0" readonly>
+                </div>
+                <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                    <label>Desc. (Bs)</label>
+                    <input type="number" step="0.01" id="prodVentaDescuento" min="0" value="0.00">
+                </div>
+                <div style="flex: 1; text-align: right;">
+                    <button type="button" class="btn-primary" onclick="agregarProductoVenta()" style="height: 40px; width: 100%; display: flex; align-items: center; justify-content: center; gap: 5px;">
+                        <i class='bx bx-plus'></i> Agregar
+                    </button>
+                </div>
+            </div>
+
+            <div class="table-responsive" style="max-height: 200px; overflow: auto; margin-bottom: 20px;">
+                <table class="table-details" id="tablaDetallesVenta">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Cant.</th>
+                            <th>Precio Unit.</th>
+                            <th>Descuento (Bs)</th>
+                            <th>Subtotal</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="placeholder-row">
+                            <td colspan="6" class="empty-placeholder">
+                                <i class='bx bx-basket'></i>
+                                Ningún producto agregado a esta transacción todavía.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="transaction-summary-box">
+                <input type="hidden" name="total" id="totalVentaInput" value="0">
+                <div class="summary-item main">
+                    <span class="summary-label">Total a Pagar:</span>
+                    <span class="summary-value highlight">Bs. <span id="totalVentaDisplay">0.00</span></span>
+                </div>
+            </div>
+
+            <div style="text-align: right;">
+                <button type="button" class="btn-secondary" onclick="cerrarModal('modalCrearVenta')">Cancelar</button>
+                <button type="submit" class="btn-primary" id="btnGuardarVenta">Completar Venta</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% include 'cliente/crear.html' %}
+
+<script>
+    let totalVenta = 0;
+
+    document.getElementById('prodVentaSelect').addEventListener('change', function() {
+        if(this.selectedIndex > 0 && this.options[this.selectedIndex]) {
+            let precio = this.options[this.selectedIndex].dataset.precio;
+            if (precio) {
+                precio = precio.toString().replace(',', '.');
+                document.getElementById('prodVentaPrecio').value = parseFloat(precio).toFixed(2);
+            } else {
+                document.getElementById('prodVentaPrecio').value = '';
+            }
+        } else {
+            document.getElementById('prodVentaPrecio').value = '';
+        }
+    });
+
+    (function() {
+        function matchCustomSelect2(params, data) {
+            if ($.trim(params.term) === '') {
+                return data;
+            }
+            if (typeof data.text === 'undefined') {
+                return null;
+            }
+            var term = params.term.toLowerCase();
+            if (data.text.toLowerCase().indexOf(term) > -1) {
+                return data;
+            }
+            if (data.children && data.children.length > 0) {
+                if (data.text.toLowerCase().indexOf(term) > -1) {
+                    return data;
+                }
+                var filteredChildren = [];
+                for (var i = 0; i < data.children.length; i++) {
+                    var matchedChild = matchCustomSelect2(params, data.children[i]);
+                    if (matchedChild !== null) {
+                        filteredChildren.push(matchedChild);
+                    }
+                }
+                if (filteredChildren.length > 0) {
+                    var modifiedData = $.extend({}, data, true);
+                    modifiedData.children = filteredChildren;
+                    return modifiedData;
+                }
+            }
+            return null;
+        }
+
+        function init() {
+            $('#selectCliente').select2({
+                width: '100%',
+                placeholder: "Buscar cliente...",
+                allowClear: true,
+                dropdownParent: $('#modalCrearVenta')
+            });
+            $('#prodVentaSelect').select2({
+                width: '100%',
+                placeholder: "Buscar producto...",
+                allowClear: true,
+                dropdownParent: $('#modalCrearVenta'),
+                matcher: matchCustomSelect2
+            });
+            
+            // Fix para que Select2 se actualice cuando cambia por jquery
+            $('#prodVentaSelect').on('change', function() {
+                if(this.selectedIndex > 0 && this.options[this.selectedIndex]) {
+                    let precio = this.options[this.selectedIndex].dataset.precio;
+                    if (precio) {
+                        precio = precio.toString().replace(',', '.');
+                        document.getElementById('prodVentaPrecio').value = parseFloat(precio).toFixed(2);
+                    } else {
+                        document.getElementById('prodVentaPrecio').value = '';
+                    }
+                } else {
+                    document.getElementById('prodVentaPrecio').value = '';
+                }
+            });
+
+            // Intercept client creation form submission
+            const clientForm = document.querySelector('#modalCrearCliente form');
+            if (clientForm) {
+                clientForm.classList.add('ajax-form');
+                clientForm.dataset.ajax = 'true';
+                clientForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    const csrf = clientForm.querySelector('[name=csrfmiddlewaretoken]').value;
+                    const formData = new FormData(clientForm);
+                    formData.append('is_ajax', 'true');
+                    
+                    try {
+                        const res = await fetch("{% url 'cliente:crear' %}", {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRFToken': csrf,
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            body: formData
+                        });
+
+                        const data = await res.json();
+                        if(data.success) {
+                            const select = document.getElementById('selectCliente');
+                            const option = new Option(
+                                data.nombre + " - CI: " + (formData.get('ci') || ''),
+                                data.id,
+                                true,
+                                true
+                            );
+                            select.add(option);
+                            $('#selectCliente').val(data.id).trigger('change');
+                            cerrarModal('modalCrearCliente');
+                            clientForm.reset();
+                        } else {
+                            mostrarErrorFormulario('modalCrearCliente', 'Error al crear cliente: ' + (data.error || 'Error desconocido'));
+                        }
+                    } catch (error) {
+                        console.error('Error al crear cliente', error);
+                    }
+                });
+            }
+        }
+
+        function checkAndRun() {
+            if (window.jQuery && window.jQuery.fn.select2) {
+                init();
+            } else {
+                setTimeout(checkAndRun, 50);
+            }
+        }
+        checkAndRun();
+    })();
+
+    function abrirModalCliente() {
+        abrirModal('modalCrearCliente');
+    }
+
+    function agregarProductoVenta() {
+        const select = document.getElementById('prodVentaSelect');
+        if (select.selectedIndex === 0) return mostrarErrorFormulario('modalCrearVenta', 'Por favor, seleccione un producto.');
+        
+        const id = select.value;
+        const nombre = select.options[select.selectedIndex].dataset.nombre;
+        const maxStock = parseInt(select.options[select.selectedIndex].dataset.stock);
+        const cantidad = parseFloat(document.getElementById('prodVentaCantidad').value);
+        const precio = parseFloat(document.getElementById('prodVentaPrecio').value);
+        const descuento = parseFloat(document.getElementById('prodVentaDescuento').value) || 0;
+
+        if (!cantidad || cantidad <= 0) return mostrarErrorFormulario('modalCrearVenta', 'Ingrese una cantidad válida.');
+        if (cantidad > maxStock) return mostrarErrorFormulario('modalCrearVenta', 'Stock insuficiente. Disponible: ' + maxStock);
+        if (!precio || precio < 0) return mostrarErrorFormulario('modalCrearVenta', 'Ingrese un precio válido.');
+        if (descuento < 0) return mostrarErrorFormulario('modalCrearVenta', 'El descuento no puede ser negativo.');
+        if (descuento > (cantidad * precio)) return mostrarErrorFormulario('modalCrearVenta', 'El descuento no puede superar el subtotal bruto (' + (cantidad * precio).toFixed(2) + ').');
+
+        const subtotalBruto = cantidad * precio;
+        const subtotalNeto = subtotalBruto - descuento;
+        const tbody = document.querySelector('#tablaDetallesVenta tbody');
+
+        // Eliminar fila de placeholder si existe
+        const placeholder = tbody.querySelector('.placeholder-row');
+        if (placeholder) placeholder.remove();
+        
+        // Buscar si el producto ya está en la tabla
+        let filaExistente = null;
+        const inputsProducto = tbody.querySelectorAll('input[name="producto[]"]');
+        for (let inp of inputsProducto) {
+            if (inp.value === id) {
+                filaExistente = inp.closest('tr');
+                break;
+            }
+        }
+
+        if (filaExistente) {
+            const inputCantidad = filaExistente.querySelector('input[name="cantidad[]"]');
+            const inputPrecio = filaExistente.querySelector('input[name="precio[]"]');
+            const inputDescuento = filaExistente.querySelector('input[name="descuento[]"]');
+            
+            const cantAnterior = parseFloat(inputCantidad.value);
+            const precioAnterior = parseFloat(inputPrecio.value);
+            const descAnterior = parseFloat(inputDescuento.value);
+            const subtotalNetoAnterior = (cantAnterior * precioAnterior) - descAnterior;
+
+            const nuevaCantidad = cantAnterior + cantidad;
+            if (nuevaCantidad > maxStock) {
+                return mostrarErrorFormulario('modalCrearVenta', 'Stock insuficiente. El total acumulado (' + nuevaCantidad + ') superaría el stock disponible (' + maxStock + ').');
+            }
+
+            const nuevoDescuento = descAnterior + descuento;
+            const nuevoSubtotalBruto = nuevaCantidad * precio;
+            if (nuevoDescuento > nuevoSubtotalBruto) {
+                return mostrarErrorFormulario('modalCrearVenta', 'El descuento acumulado (' + nuevoDescuento.toFixed(2) + ') no puede superar el subtotal bruto (' + nuevoSubtotalBruto.toFixed(2) + ').');
+            }
+
+            const nuevoSubtotalNeto = nuevoSubtotalBruto - nuevoDescuento;
+
+            // Actualizar inputs de la fila
+            inputCantidad.value = nuevaCantidad;
+            inputPrecio.value = precio;
+            inputDescuento.value = nuevoDescuento;
+
+            // Actualizar celdas visibles
+            const tds = filaExistente.querySelectorAll('td');
+            tds[1].innerHTML = `${nuevaCantidad} <input type="hidden" name="cantidad[]" value="${nuevaCantidad}">`;
+            tds[2].innerHTML = `${precio.toFixed(2)} <input type="hidden" name="precio[]" value="${precio}">`;
+            tds[3].innerHTML = `${nuevoDescuento.toFixed(2)} <input type="hidden" name="descuento[]" value="${nuevoDescuento}">`;
+            tds[4].textContent = nuevoSubtotalNeto.toFixed(2);
+            
+            // Reconfigurar botón eliminar
+            const btnEliminar = tds[5].querySelector('button');
+            btnEliminar.setAttribute('onclick', `removerProductoVenta(this, ${nuevoSubtotalNeto})`);
+
+            // Ajustar total global
+            totalVenta = totalVenta - subtotalNetoAnterior + nuevoSubtotalNeto;
+        } else {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${nombre} <input type="hidden" name="producto[]" value="${id}"></td>
+                <td>${cantidad} <input type="hidden" name="cantidad[]" value="${cantidad}"></td>
+                <td>${precio.toFixed(2)} <input type="hidden" name="precio[]" value="${precio}"></td>
+                <td>${descuento.toFixed(2)} <input type="hidden" name="descuento[]" value="${descuento}"></td>
+                <td>${subtotalNeto.toFixed(2)}</td>
+                <td><button type="button" class="btn-icon" onclick="removerProductoVenta(this, ${subtotalNeto})"><i class='bx bx-trash' style="color:var(--red-color)"></i></button></td>
+            `;
+            tbody.appendChild(tr);
+            totalVenta += subtotalNeto;
+        }
+        
+        actualizarTotalVenta();
+        
+        // Reset
+        $('#prodVentaSelect').val('').trigger('change');
+        document.getElementById('prodVentaCantidad').value = 1;
+        document.getElementById('prodVentaPrecio').value = '';
+        document.getElementById('prodVentaDescuento').value = '0.00';
+    }
+
+    function removerProductoVenta(btn, subtotal) {
+        btn.closest('tr').remove();
+        totalVenta -= subtotal;
+        actualizarTotalVenta();
+
+        // Mostrar placeholder si la tabla queda vacía
+        const tbody = document.querySelector('#tablaDetallesVenta tbody');
+        if (tbody && tbody.querySelectorAll('tr').length === 0) {
+            tbody.innerHTML = `
+                <tr class="placeholder-row">
+                    <td colspan="6" class="empty-placeholder">
+                        <i class='bx bx-basket'></i>
+                        Ningún producto agregado a esta transacción todavía.
+                    </td>
+                </tr>
+            `;
+        }
+    }
+
+    function actualizarTotalVenta() {
+        document.getElementById('totalVentaDisplay').textContent = totalVenta.toFixed(2);
+        document.getElementById('totalVentaInput').value = totalVenta.toFixed(2);
+    }
+</script>

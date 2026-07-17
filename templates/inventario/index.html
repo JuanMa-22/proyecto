@@ -1,0 +1,154 @@
+{% extends 'layout/base.html' %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="card">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <h2 class="card-title">Inventario General y Valoración de Stock</h2>
+        </div>
+
+        <div style="padding: 20px;">
+            {% if messages %}
+                <div style="margin-bottom: 20px;">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}" style="padding: 10px; border-radius: 4px; margin-bottom: 10px; 
+                            {% if message.tags == 'success' %} background-color: rgba(46, 204, 113, 0.15); color: var(--green-color); border: 1px solid var(--green-color);
+                            {% else %} background-color: rgba(231, 76, 60, 0.15); color: var(--red-color); border: 1px solid var(--red-color); {% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Categoría</th>
+                            <th>Marca</th>
+                            <th style="text-align: center;">Stock Actual</th>
+                            <th style="text-align: center;">Stock Mín.</th>
+                            <th style="text-align: center;">Stock Máx.</th>
+                            <th>Estado</th>
+                            <th style="text-align: right;">Val. (USD)</th>
+                            <th style="text-align: right;">Val. (Bs)</th>
+                            {% if request.session.usuario_rol|lower != 'vendedor' %}
+                            <th style="text-align: center;">Acciones</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in inventarios %}
+                        <tr>
+                            <td style="font-weight: 600;">{{ item.producto.nombre }}</td>
+                            <td>{{ item.producto.categoria.nombre }}</td>
+                            <td>{{ item.producto.marca.nombre }}</td>
+                            <td style="text-align: center; font-weight: 700;">{{ item.producto.stock }}</td>
+                            <td style="text-align: center; color: var(--text-secondary);">{{ item.stock_minimo }}</td>
+                            <td style="text-align: center; color: var(--text-secondary);">{{ item.stock_maximo }}</td>
+                            <td>
+                                {% if item.estado_stock == 'Agotado' %}
+                                    <span style="display:inline-block; font-size:11px; font-weight:700; background:rgba(231, 76, 60, 0.15); color:var(--red-color); border-radius:6px; padding:2px 8px;">Agotado</span>
+                                {% elif item.estado_stock == 'Stock Bajo' %}
+                                    <span style="display:inline-block; font-size:11px; font-weight:700; background:rgba(241, 196, 15, 0.15); color:#d68910; border-radius:6px; padding:2px 8px;">Stock Bajo</span>
+                                {% elif item.estado_stock == 'Sobre-stock' %}
+                                    <span style="display:inline-block; font-size:11px; font-weight:700; background:rgba(59, 111, 212, 0.15); color:#2874a6; border-radius:6px; padding:2px 8px;">Sobre-stock</span>
+                                {% else %}
+                                    <span style="display:inline-block; font-size:11px; font-weight:700; background:rgba(46, 204, 113, 0.15); color:var(--green-color); border-radius:6px; padding:2px 8px;">Normal</span>
+                                {% endif %}
+                            </td>
+                            <td style="text-align: right; font-weight: bold; color: var(--text-primary);">$ {{ item.valoracion_total_usd|floatformat:2 }}</td>
+                            <td style="text-align: right; font-weight: bold; color: var(--accent-color);">Bs {{ item.valoracion_total_bs|floatformat:2 }}</td>
+                            {% if request.session.usuario_rol|lower != 'vendedor' %}
+                            <td style="text-align: center;">
+                                <button onclick="abrirModal('modalEditarInventario{{ item.id_inventario }}')" class="btn-icon" title="Ajustar Límites y Ubicación" style="font-size: 18px; color: var(--accent-color); background: none; border: none; cursor: pointer; padding: 0;">
+                                    <i class='bx bx-cog'></i>
+                                </button>
+                                {% include 'inventario/editar.html' with item=item %}
+                            </td>
+                            {% endif %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        let table = new DataTable('.data-table', {
+            language: {
+                processing: "Procesando...",
+                search: "Buscar:",
+                lengthMenu: "Mostrar _MENU_ registros",
+                info: "Mostrando de _START_ a _END_ de _TOTAL_ registros",
+                infoEmpty: "Mostrando 0 a 0 de 0 registros",
+                infoFiltered: "(filtrado de _MAX_ registros en total)",
+                infoPostFix: "",
+                loadingRecords: "Cargando...",
+                zeroRecords: "No se encontraron resultados",
+                emptyTable: "Ningún dato disponible en esta tabla",
+                paginate: {
+                    first: "Primero",
+                    previous: "Anterior",
+                    next: "Siguiente",
+                    last: "Último"
+                },
+                aria: {
+                    sortAscending: ": Activar para ordenar la columna de manera ascendente",
+                    sortDescending: ": Activar para ordenar la columna de manera descendente"
+                }
+            }
+        });
+
+        {% if messages %}
+            {% for message in messages %}
+                Swal.fire({
+                    position: "top-end",
+                    icon: "{{ message.tags }}" === "error" ? "error" : "success",
+                    title: "{{ message }}",
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+            {% endfor %}
+        {% endif %}
+    });
+
+    function pedirConfirmacion(formEl, nombre) {
+        Swal.fire({
+            title: "¿Estás seguro?",
+            text: "¡No podrás revertir esto!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Sí, desactivar!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                formEl.submit();
+            }
+        });
+    }
+
+    function pedirConfirmacionActivar(formEl, nombre) {
+        Swal.fire({
+            title: "¿Estás seguro?",
+            text: "¡Esto reactivará el registro '" + nombre + "'!",
+            icon: "info",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Sí, activar!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                formEl.submit();
+            }
+        });
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,81 @@
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    container_name: sismeing_db
+    environment:
+      POSTGRES_DB: sismeing
+      POSTGRES_USER: sismeing_user
+      POSTGRES_PASSWORD: sismeing_password
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U sismeing_user -d sismeing" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: sismeing_redis
+    ports:
+      - "6379:6379"
+
+  web:
+    build: .
+    container_name: sismeing_web
+    command: daphne -b 0.0.0.0 -p 8000 config.asgi:application
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_NAME=sismeing
+      - DB_USER=sismeing_user
+      - DB_PASSWORD=sismeing_password
+      - DB_HOST=db
+      - DB_PORT=5432
+      - REDIS_URL=redis://redis:6379/0
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - TZ=America/La_Paz
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  celery_worker:
+    build: .
+    container_name: sismeing_celery
+    command: celery -A config worker --loglevel=info
+    volumes:
+      - .:/app
+    environment:
+      - DB_NAME=sismeing
+      - DB_USER=sismeing_user
+      - DB_PASSWORD=sismeing_password
+      - DB_HOST=db
+      - DB_PORT=5432
+      - REDIS_URL=redis://redis:6379/0
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - TZ=America/La_Paz
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  nginx:
+    image: nginx:alpine
+    container_name: sismeing_nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - .:/app:ro
+    depends_on:
+      - web
+
+volumes:
+  pgdata:

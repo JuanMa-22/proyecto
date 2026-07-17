@@ -1,0 +1,22 @@
+<div id="modalEditar{{ item.id_tipoMovimiento }}" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="cerrarModal('modalEditar{{ item.id_tipoMovimiento }}')">&times;</span>
+        <h3 class="card-title" style="margin-bottom: 20px;">Editar Tipo de Movimiento</h3>
+        
+        <form action="{% url 'tipoMovimiento:editar' item.id_tipoMovimiento %}" method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>Tipo de Movimiento</label>
+                <select name="nombre" class="form-control" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                    <option value="ENTRADA" {% if item.nombre == 'ENTRADA' %}selected{% endif %}>Entrada</option>
+                    <option value="SALIDA" {% if item.nombre == 'SALIDA' %}selected{% endif %}>Salida</option>
+                </select>
+            </div>
+            
+            <div style="text-align: right; margin-top: 25px;">
+                <button type="button" class="btn-secondary" onclick="cerrarModal('modalEditar{{ item.id_tipoMovimiento }}')">Cancelar</button>
+                <button type="submit" class="btn-primary">Guardar Cambios</button>
+            </div>
+        </form>
+    </div>
+</div>

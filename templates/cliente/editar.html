@@ -1,0 +1,39 @@
+<div id="modalEditar{{ item.id_cliente }}" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="cerrarModal('modalEditar{{ item.id_cliente }}')">&times;</span>
+        <h3 class="card-title" style="margin-bottom: 20px;">Editar Cliente</h3>
+        
+        <form action="{% url 'cliente:editar' item.id_cliente %}" method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>Nombre</label>
+                <input type="text" name="nombre" value="{{ item.nombre }}" required pattern="^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$" title="Solo se permiten letras">
+            </div>
+            <div class="form-group">
+                <label>Apellido</label>
+                <input type="text" name="apellido" value="{{ item.apellido }}" required pattern="^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$" title="Solo se permiten letras">
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" name="email" value="{{ item.email }}" required>
+            </div>
+            <div class="form-group">
+                <label>Teléfono</label>
+                <input type="text" name="telefono" value="{{ item.telefono }}" required pattern="^[0-9]+$" title="Solo se permiten números" inputmode="numeric">
+            </div>
+            <div class="form-group">
+                <label>Dirección</label>
+                <input type="text" name="direccion" value="{{ item.direccion }}" required>
+            </div>
+            <div class="form-group">
+                <label>CI</label>
+                <input type="text" name="ci" value="{{ item.ci }}" required pattern="^[0-9]+$" title="Solo se permiten números" inputmode="numeric">
+            </div>
+            
+            <div style="text-align: right; margin-top: 25px;">
+                <button type="button" class="btn-secondary" onclick="cerrarModal('modalEditar{{ item.id_cliente }}')">Cancelar</button>
+                <button type="submit" class="btn-primary">Guardar Cambios</button>
+            </div>
+        </form>
+    </div>
+</div>

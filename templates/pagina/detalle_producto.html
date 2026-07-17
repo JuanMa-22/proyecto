@@ -1,0 +1,587 @@
+{% extends 'pagina/base.html' %}
+{% load static %}
+
+{% block title %}{{ producto.nombre }} - {{ producto.marca.nombre }} en La Paz | SISMEING{% endblock %}
+{% block meta_description %}Consulta el {{ producto.nombre }} de la marca {{ producto.marca.nombre }} (Categoría: {{ producto.categoria.nombre }}) en SISMEING. Revisa precio, características y disponibilidad en La Paz, Bolivia.{% endblock %}
+
+{% block og_title %}{{ producto.nombre }} - {{ producto.marca.nombre }} en La Paz | SISMEING{% endblock %}
+{% block og_description %}Consulta el {{ producto.nombre }} de la marca {{ producto.marca.nombre }} en SISMEING. Revisa precio, características y disponibilidad.{% endblock %}
+{% block og_image %}{% if producto.imagen %}{{ request.scheme }}://{{ request.get_host }}{{ producto.imagen.url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% static 'img/logo.png' %}{% endif %}{% endblock %}
+
+{% block twitter_title %}{{ producto.nombre }} - {{ producto.marca.nombre }} en La Paz | SISMEING{% endblock %}
+{% block twitter_description %}Consulta el {{ producto.nombre }} de la marca {{ producto.marca.nombre }} en SISMEING. Revisa precio, características y disponibilidad.{% endblock %}
+{% block twitter_image %}{% if producto.imagen %}{{ request.scheme }}://{{ request.get_host }}{{ producto.imagen.url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% static 'img/logo.png' %}{% endif %}{% endblock %}
+{% block extra_css %}
+<style>
+    .product-detail-container {
+        padding: 30px 5% 60px 5%;
+        max-width: 1200px;
+        margin: 0 auto;
+        background: radial-gradient(circle at 10% 20%, rgba(255, 77, 0, 0.02) 0%, rgba(255, 255, 255, 0) 50%);
+        border-radius: 30px;
+    }
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--primary);
+        font-weight: 600;
+        text-decoration: none;
+        margin-bottom: 2rem;
+        transition: transform 0.2s, color 0.2s;
+    }
+    .back-link:hover {
+        transform: translateX(-5px);
+        color: var(--primary-dark);
+    }
+    .detail-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 4rem;
+        margin-bottom: 4rem;
+        align-items: center;
+    }
+    @media (max-width: 768px) {
+        .detail-grid {
+            grid-template-columns: 1fr;
+            gap: 2.5rem;
+        }
+    }
+    .detail-image-card {
+        background: var(--white);
+        border: 1px solid var(--grey-border);
+        border-radius: 24px;
+        padding: 2.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 450px;
+        box-shadow: 0 15px 40px rgba(0,0,0,0.04);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+    }
+    .detail-image-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 20px 50px rgba(255, 77, 0, 0.08);
+        border-color: rgba(255, 77, 0, 0.15);
+    }
+    .detail-image-card img {
+        max-width: 100%;
+        max-height: 380px;
+        border-radius: 12px;
+        object-fit: contain;
+    }
+    .detail-info {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    .detail-category {
+        color: var(--primary);
+        font-weight: 700;
+        font-size: 0.85rem;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        margin-bottom: 0.75rem;
+        background: #fff5f0;
+        padding: 6px 14px;
+        border-radius: 30px;
+        width: fit-content;
+    }
+    .detail-title {
+        font-size: 2.6rem;
+        font-weight: 800;
+        margin-bottom: 1.25rem;
+        color: var(--text-dark);
+        line-height: 1.25;
+    }
+    .detail-brand {
+        font-size: 1.05rem;
+        color: var(--text-muted);
+        margin-bottom: 1.5rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .detail-price {
+        font-size: 2.4rem;
+        font-weight: 800;
+        color: var(--primary);
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: baseline;
+        gap: 12px;
+    }
+    .detail-price small {
+        font-size: 1.3rem;
+        color: var(--text-muted);
+        font-weight: 600;
+    }
+    .detail-stock {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 700;
+        padding: 6px 18px;
+        border-radius: 30px;
+        margin-bottom: 2rem;
+        width: fit-content;
+        font-size: 0.9rem;
+    }
+    .stock-in {
+        background: rgba(46, 204, 113, 0.12);
+        color: #2ecc71;
+    }
+    .stock-low {
+        background: rgba(241, 196, 15, 0.12);
+        color: #d35400;
+    }
+    .stock-out {
+        background: rgba(231, 76, 60, 0.12);
+        color: #e74c3c;
+    }
+    .detail-desc {
+        font-size: 1.1rem;
+        line-height: 1.7;
+        color: var(--text-muted);
+        margin-bottom: 2.5rem;
+        white-space: pre-line;
+    }
+    .detail-specs {
+        margin-top: 2rem;
+        margin-bottom: 4rem;
+    }
+    .specs-title {
+        font-size: 1.5rem;
+        font-weight: 800;
+        margin-bottom: 2rem;
+        color: var(--text-dark);
+        border-bottom: 3px solid var(--primary);
+        padding-bottom: 0.6rem;
+        width: fit-content;
+    }
+    .specs-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1.5rem;
+    }
+    .spec-item {
+        background: linear-gradient(135deg, var(--grey-light) 0%, rgba(255, 77, 0, 0.015) 100%);
+        border: 1px solid var(--grey-border);
+        border-left: 4px solid var(--primary);
+        padding: 1.25rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.01);
+        transition: all 0.2s ease;
+    }
+    .spec-item:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(255, 77, 0, 0.04);
+        border-color: rgba(255, 77, 0, 0.1);
+        border-left-width: 6px;
+    }
+    .spec-label {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        margin-bottom: 6px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+    }
+    .spec-value {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--text-dark);
+    }
+    .actions-row {
+        display: flex;
+        gap: 1.5rem;
+        width: 100%;
+    }
+    .btn-action-chat {
+        background: var(--primary);
+        color: white;
+        padding: 1.1rem 2.5rem;
+        border-radius: 12px;
+        font-size: 1.1rem;
+        font-weight: 700;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        flex-grow: 1;
+        box-shadow: 0 8px 24px rgba(255, 77, 0, 0.25);
+    }
+    .btn-action-chat:hover {
+        background: var(--primary-dark);
+        transform: translateY(-3px);
+        box-shadow: 0 12px 30px rgba(255, 77, 0, 0.35);
+    }
+    .related-section {
+        margin-top: 6rem;
+    }
+    .related-title {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: var(--text-dark);
+        margin-bottom: 2.5rem;
+        border-bottom: 3px solid var(--primary);
+        padding-bottom: 0.6rem;
+        width: fit-content;
+    }
+
+    /* ──── Grilla de productos relacionados ──── */
+    .products-grid-v2 {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 1.5rem;
+    }
+
+    /* ──── Tarjeta de producto ──── */
+    .product-card-v2 {
+        background: var(--white);
+        border: 1px solid var(--grey-border);
+        border-radius: 16px;
+        overflow: hidden;
+        position: relative;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+    }
+    .product-card-v2:hover {
+        box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+        border-color: rgba(255, 77, 0, 0.2);
+        transform: translateY(-5px);
+    }
+
+    .product-card-v2 .product-img-wrap {
+        height: 180px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--grey-light);
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--grey-border);
+    }
+    .product-card-v2 .product-img-wrap img {
+        max-height: 100%;
+        max-width: 100%;
+        object-fit: contain;
+        transition: transform 0.4s ease;
+    }
+    .product-card-v2:hover .product-img-wrap img {
+        transform: scale(1.08);
+    }
+
+    .product-card-v2 .product-info {
+        padding: 1.2rem;
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+    }
+    .product-card-v2 .cat-label {
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: var(--primary);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 6px;
+    }
+    .product-card-v2 h4 {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin-bottom: 8px;
+        line-height: 1.4;
+        height: 40px;
+        overflow: hidden;
+    }
+    .product-card-v2 h4 a {
+        color: inherit;
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+    .product-card-v2:hover h4 a {
+        color: var(--primary);
+    }
+    .product-card-v2 .price {
+        font-size: 1.2rem;
+        font-weight: 800;
+        color: var(--primary);
+        margin-bottom: 12px;
+        display: flex;
+        align-items: baseline;
+        gap: 6px;
+    }
+    .product-card-v2 .price small {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        font-weight: 600;
+    }
+
+    .product-card-v2 .card-actions {
+        display: flex;
+        gap: 0.6rem;
+        margin-top: auto;
+    }
+    .btn-detail {
+        flex: 1;
+        background: var(--grey-light);
+        color: var(--text-dark);
+        border: 1px solid var(--grey-border);
+        border-radius: 8px;
+        padding: 0.65rem 0.5rem;
+        font-size: 0.75rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-align: center;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        text-decoration: none;
+    }
+    .btn-detail:hover {
+        background: var(--grey-border);
+        color: var(--text-dark);
+    }
+    .btn-chat-card {
+        flex: 1;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.65rem 0.5rem;
+        font-size: 0.75rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        text-transform: uppercase;
+        box-shadow: 0 4px 12px rgba(255, 77, 0, 0.15);
+    }
+    .btn-chat-card:hover {
+        background: var(--primary-dark);
+        transform: translateY(-1px);
+        box-shadow: 0 6px 15px rgba(255, 77, 0, 0.25);
+    }
+
+    /* ──── Responsiveness & Polish ──── */
+    @media (max-width: 768px) {
+        .products-grid-v2 {
+            grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
+            gap: 1rem;
+        }
+        .product-card-v2 .product-img-wrap {
+            height: 140px;
+            padding: 1rem;
+        }
+        .product-card-v2 h4 {
+            font-size: 0.8rem;
+            height: 34px;
+        }
+        .product-card-v2 .price {
+            font-size: 1rem;
+        }
+        .product-card-v2 .card-actions {
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+        .btn-detail, .btn-chat-card {
+            padding: 0.5rem;
+            font-size: 0.7rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="product-detail-container">
+    <a href="{% url 'web:inicio_pagina' %}#productos" class="back-link">
+        <i class="fas fa-arrow-left"></i> Volver a Productos
+    </a>
+
+    <div class="detail-grid">
+        <div class="detail-image-card">
+            {% if producto.imagen %}
+            <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }} - {{ producto.marca.nombre }} en SISMEING" loading="lazy">
+            {% else %}
+            <img src="https://via.placeholder.com/400x300/f8f9fa/adb5bd?text={{ producto.nombre|urlencode }}" alt="{{ producto.nombre }} - {{ producto.marca.nombre }} en SISMEING" loading="lazy">
+            {% endif %}
+        </div>
+
+        <div class="detail-info">
+            <span class="detail-category">{{ producto.categoria.nombre }}</span>
+            <h1 class="detail-title">{{ producto.nombre }}</h1>
+            
+            <div class="detail-brand">
+                <i class="fas fa-tag" style="color: var(--primary);"></i> Marca: <strong>{{ producto.marca.nombre }}</strong>
+            </div>
+
+            <div class="detail-price">
+                Bs. {{ producto.precio_actual|floatformat:2 }}
+                <small>/ ${{ producto.precio_usd|floatformat:2 }} USD</small>
+            </div>
+
+            {% if producto.stock <= 0 %}
+            <div class="detail-stock stock-out">
+                <i class="fas fa-times-circle"></i> Sin Stock / Agotado
+            </div>
+            {% elif producto.stock < 5 %}
+            <div class="detail-stock stock-low">
+                <i class="fas fa-exclamation-triangle"></i> ¡Stock Bajo! Solo {{ producto.stock }} unidades disponibles
+            </div>
+            {% else %}
+            <div class="detail-stock stock-in">
+                <i class="fas fa-check-circle"></i> En Stock / Disponible ({{ producto.stock }} unidades)
+            </div>
+            {% endif %}
+
+            {% if producto.descripcion %}
+            <p class="detail-desc">{{ producto.descripcion }}</p>
+            {% else %}
+            <p class="detail-desc">No hay descripción disponible para este producto.</p>
+            {% endif %}
+
+            <div class="actions-row">
+                <button onclick="enviarMensajeChatDirecto('Hola, me interesa el producto: {{ producto.nombre|escapejs }}. ¿Tienen disponibilidad inmediata en La Paz?')" class="btn-action-chat">
+                    <i class="fas fa-comment-dots"></i> Consultar con Asistente IA
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Especificaciones Técnicas -->
+    {% if producto.especificacion %}
+    <div class="detail-specs">
+        <h2 class="specs-title">Especificaciones Técnicas</h2>
+        <div class="specs-grid">
+            {% if producto.especificacion.socket and producto.especificacion.socket != 'None' %}
+            <div class="spec-item">
+                <div class="spec-label">Socket</div>
+                <div class="spec-value">{{ producto.especificacion.socket }}</div>
+            </div>
+            {% endif %}
+            {% if producto.especificacion.chipset and producto.especificacion.chipset != 'None' %}
+            <div class="spec-item">
+                <div class="spec-label">Chipset</div>
+                <div class="spec-value">{{ producto.especificacion.chipset }}</div>
+            </div>
+            {% endif %}
+            {% if producto.especificacion.tipo_ram and producto.especificacion.tipo_ram != 'None' %}
+            <div class="spec-item">
+                <div class="spec-label">Tipo RAM</div>
+                <div class="spec-value">{{ producto.especificacion.tipo_ram }}</div>
+            </div>
+            {% endif %}
+            {% if producto.especificacion.vram and producto.especificacion.vram != 'None' %}
+            <div class="spec-item">
+                <div class="spec-label">VRAM</div>
+                <div class="spec-value">{{ producto.especificacion.vram }}</div>
+            </div>
+            {% endif %}
+            {% if producto.especificacion.watts and producto.especificacion.watts != 'None' %}
+            <div class="spec-item">
+                <div class="spec-label">Watts</div>
+                <div class="spec-value">{{ producto.especificacion.watts }}</div>
+            </div>
+            {% endif %}
+            {% if producto.especificacion.velocidad_ram and producto.especificacion.velocidad_ram != 'None' %}
+            <div class="spec-item">
+                <div class="spec-label">Velocidad RAM</div>
+                <div class="spec-value">{{ producto.especificacion.velocidad_ram }}</div>
+            </div>
+            {% endif %}
+            {% if producto.especificacion.almacenamiento and producto.especificacion.almacenamiento != 'None' %}
+            <div class="spec-item">
+                <div class="spec-label">Almacenamiento</div>
+                <div class="spec-value">{{ producto.especificacion.almacenamiento }}</div>
+            </div>
+            {% endif %}
+            {% if producto.especificacion.pci and producto.especificacion.pci != 'None' %}
+            <div class="spec-item">
+                <div class="spec-label">PCI-Express</div>
+                <div class="spec-value">{{ producto.especificacion.pci }}</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Productos Relacionados -->
+    {% if productos_relacionados %}
+    <div class="related-section">
+        <h2 class="related-title">Productos Relacionados</h2>
+        <div class="products-grid-v2">
+            {% for rel in productos_relacionados %}
+            <div class="product-card-v2" onclick="window.location.href='{% url 'web:detalle_producto' rel.slug %}'">
+                <div class="product-img-wrap">
+                    {% if rel.imagen %}
+                    <img src="{{ rel.imagen.url }}" alt="{{ rel.nombre }} - {{ rel.marca.nombre }} en SISMEING" loading="lazy">
+                    {% else %}
+                    <img src="https://via.placeholder.com/150x150/f8f9fa/adb5bd?text={{ rel.nombre|urlencode }}" alt="{{ rel.nombre }} - {{ rel.marca.nombre }} en SISMEING" loading="lazy">
+                    {% endif %}
+                </div>
+                <div class="product-info">
+                    <span class="cat-label">{{ rel.categoria.nombre }}</span>
+                    <h4><a href="{% url 'web:detalle_producto' rel.slug %}" style="text-decoration: none; color: inherit;">{{ rel.nombre }}</a></h4>
+                    <div class="price">
+                        Bs. {{ rel.precio_actual|floatformat:2 }}
+                        <small>/ ${{ rel.precio_usd|floatformat:2 }}</small>
+                    </div>
+                    <div class="card-actions">
+                        <a href="{% url 'web:detalle_producto' rel.slug %}" class="btn-detail" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 5px;">
+                            <i class="fas fa-eye"></i> Ver más
+                        </a>
+                        <button class="btn-chat-card" onclick="event.stopPropagation(); enviarMensajeChatDirecto('Quiero consultar sobre el producto: {{ rel.nombre|escapejs }}')">
+                            <i class="fas fa-comment-dots"></i> Consultar
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org/",
+  "@type": "Product",
+  "name": "{{ producto.nombre }}",
+  "image": [
+    {% if producto.imagen %}
+      "{{ request.scheme }}://{{ request.get_host }}{{ producto.imagen.url }}"
+    {% else %}
+      "{{ request.scheme }}://{{ request.get_host }}{% static 'img/logo.png' %}"
+    {% endif %}
+  ],
+  "description": "{{ producto.descripcion|default:producto.nombre|escapejs }}",
+  "brand": {
+    "@type": "Brand",
+    "name": "{{ producto.marca.nombre }}"
+  },
+  "offers": {
+    "@type": "Offer",
+    "url": "{{ request.build_absolute_uri }}",
+    "priceCurrency": "BOB",
+    "price": "{{ producto.precio_actual }}",
+    "itemCondition": "https://schema.org/NewCondition",
+    "availability": "{% if producto.stock > 0 %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}"
+  }
+}
+</script>
+{% endblock %}

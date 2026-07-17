@@ -1,0 +1,148 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recibo de Venta #{{ venta.id_venta|truncatechars:10 }}</title>
+    <style>
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        .receipt-container {
+            background-color: #fff;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px dashed #ccc;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            margin: 0;
+            color: #ff3c00;
+            font-size: 24px;
+            text-transform: uppercase;
+        }
+        .header img {
+            max-width: 150px;
+            height: auto;
+            margin-bottom: 10px;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        th {
+            background-color: #f9f9f9;
+        }
+        .total-row {
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 12px;
+            color: #777;
+        }
+        @media print {
+            body {
+                background-color: #fff;
+                padding: 0;
+            }
+            .receipt-container {
+                box-shadow: none;
+                max-width: 100%;
+            }
+            .no-print {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="receipt-container">
+        <div class="header">
+            <img src="{% static 'img/logo.png' %}" alt="Logo Sismeing">
+            <h1>SISMEING</h1>
+            <p style="margin: 5px 0; font-weight: bold; color: #666;">Comprobante de Venta</p>
+        </div>
+        
+        <div class="info-row">
+            <strong>ID Venta:</strong>
+            <span>{{ venta.id_venta }}</span>
+        </div>
+        <div class="info-row">
+            <strong>Fecha:</strong>
+            <span>{{ venta.fecha|date:"d/m/Y" }}</span>
+        </div>
+        <div class="info-row">
+            <strong>Cliente:</strong>
+            <span>{{ venta.cliente.nombre }} {{ venta.cliente.apellido }}</span>
+        </div>
+        <div class="info-row">
+            <strong>NIT/CI:</strong>
+            <span>{{ venta.cliente.ci }}</span>
+        </div>
+        <div class="info-row">
+            <strong>Atendido por:</strong>
+            <span>{{ venta.usuario.nombre }} {{ venta.usuario.apellido }}</span>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Cant.</th>
+                    <th>Descripción</th>
+                    <th style="text-align: right;">P. Unit</th>
+                    <th style="text-align: right;">Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for detalle in detalles %}
+                <tr>
+                    <td>{{ detalle.cantidad }}</td>
+                    <td>{{ detalle.producto.nombre }}</td>
+                    <td style="text-align: right;">Bs. {{ detalle.precio_unitario }}</td>
+                    <td style="text-align: right;">Bs. {{ detalle.subtotal }}</td>
+                </tr>
+                {% endfor %}
+                <tr class="total-row">
+                    <td colspan="3" style="text-align: right; padding-top: 20px;">TOTAL:</td>
+                    <td style="text-align: right; padding-top: 20px;">Bs. {{ venta.total }}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="footer">
+            <p>¡Gracias por su preferencia!</p>
+            <p>Sismeing - Sistema de Inventarios y Ventas</p>
+            <button class="no-print" onclick="window.print()" style="margin-top: 20px; padding: 10px 20px; background-color: #ff3c00; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                Imprimir Recibo
+            </button>
+        </div>
+    </div>
+</body>
+</html>

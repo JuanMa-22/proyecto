@@ -1,0 +1,70 @@
+{% load static %}
+<!-- Agente Conversacional Floating Button & Window -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="{% static 'css/estilo_agente.css' %}">
+
+<!-- Botón flotante para abrir/cerrar el agente -->
+<div class="agente-floating-btn" id="agenteBtn" onclick="alternarAgente()">
+    <i class="fas fa-robot"></i>
+    <span class="pulse-ring"></span>
+</div>
+
+<!-- Ventana del Agente Conversacional -->
+<div class="agente-window" id="agenteWindow" data-tts-url="{% url 'agenteConversacional:tts' %}">
+    <!-- Encabezado -->
+    <div class="agente-header">
+        <div class="agente-info">
+            <div class="agente-avatar">
+                <i class="fas fa-microchip"></i>
+                <span class="online-indicator"></span>
+            </div>
+            <div>
+                <h4>Sismeing AI</h4>
+                <p>{% if es_propietario %}Panel de Propietario{% else %}Asistente Inteligente{% endif %}</p>
+            </div>
+        </div>
+        <div class="agente-actions">
+            <!-- Botón de Voz TTS (activado por defecto) -->
+            <button class="agente-tts-toggle active" id="agenteTtsBtn" onclick="alternarVozAgente()" title="Voz activada — clic para silenciar">
+                <i class="fas fa-volume-up" id="agenteTtsIcon"></i>
+            </button>
+            <i class="fas fa-times agente-close" onclick="alternarAgente()" title="Cerrar"></i>
+        </div>
+    </div>
+
+    <!-- Contenedor de mensajes -->
+    <div class="agente-messages" id="agenteMessages">
+        <div class="chat-msg bot">
+            <div class="msg-content">
+                ¡Hola! Soy el <b>Agente Conversacional de Sismeing</b>. 
+                {% if es_propietario %}
+                He verificado tu sesión como <b>propietario</b>. Puedes consultarme estadísticas de ventas del día/mes/año, ver inventarios por marcas/categorías o productos con bajo stock. ¿En qué puedo asistirte hoy?
+                {% else %}
+                ¿En qué puedo ayudarte hoy? Puedes pregun tarme por precios o características de componentes y disponibilidad.
+                {% endif %}
+            </div>
+            <span class="msg-time">Ahora</span>
+        </div>
+        <div class="typing-indicator" id="agenteTypingIndicator" style="display: none;">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </div>
+
+    <!-- Área de entrada de mensajes -->
+    <div class="agente-input-area">
+        <input type="text" id="agenteInput" class="agente-input" placeholder="Escribe tu mensaje aquí..." onkeypress="manejarEnterAgente(event)">
+        
+        <button class="agente-mic-btn" id="agenteMicBtn" onclick="alternarMicrofonoAgente()" title="Hablar (Reconocimiento de voz)">
+            <i id="agenteMicIcon" class="fas fa-microphone"></i>
+        </button>
+        
+        <button class="agente-send-btn" onclick="enviarMensajeAgente()" title="Enviar mensaje">
+            <i class="fas fa-paper-plane"></i>
+        </button>
+    </div>
+</div>
+
+<!-- Cargar el script de lógica del agente -->
+<script src="{% static 'js/logica_agente.js' %}"></script>
