@@ -47,16 +47,34 @@ def buscar_productos_similares(query: str, top_k: int = 5):
             from django.db.models import Q
             from apps.producto.models import Producto
             
-            palabras = query.strip().split()
-            q_obj = Q()
-            for pal in palabras:
-                if len(pal) > 2:  # Solo buscar palabras significativas
-                    q_obj |= Q(nombre__icontains=pal) | Q(descripcion__icontains=pal)
+            query_clean = query.strip()
+            # 1. Intentar coincidencia exacta de la frase de búsqueda completa
+            productos = list(Producto.objects.filter(nombre__icontains=query_clean, estado=True).select_related('categoria', 'marca')[:top_k])
             
-            if not palabras or q_obj == Q():
-                q_obj = Q(nombre__icontains=query) | Q(descripcion__icontains=query)
-                
-            productos = Producto.objects.filter(q_obj, estado=True).select_related('categoria', 'marca')[:top_k]
+            # 2. Si no hay suficientes, intentar que contenga todas las palabras clave significativas (AND)
+            if len(productos) < top_k:
+                palabras = [p for p in query_clean.split() if len(p) > 2]
+                if palabras:
+                    q_and = Q()
+                    for pal in palabras:
+                        q_and &= Q(nombre__icontains=pal)
+                    
+                    ids_existentes = [p.id_producto for p in productos]
+                    productos_and = Producto.objects.filter(q_and, estado=True).exclude(id_producto__in=ids_existentes).select_related('categoria', 'marca')[:top_k - len(productos)]
+                    productos.extend(productos_and)
+            
+            # 3. Si aún faltan, buscar por coincidencia parcial de palabras clave (OR)
+            if len(productos) < top_k:
+                palabras = [p for p in query_clean.split() if len(p) > 2]
+                if palabras:
+                    q_or = Q()
+                    for pal in palabras:
+                        q_or |= Q(nombre__icontains=pal)
+                    
+                    ids_existentes = [p.id_producto for p in productos]
+                    productos_or = Producto.objects.filter(q_or, estado=True).exclude(id_producto__in=ids_existentes).select_related('categoria', 'marca')[:top_k - len(productos)]
+                    productos.extend(productos_or)
+
             productos_retornados = []
             for prod in productos:
                 productos_retornados.append({
@@ -68,6 +86,7 @@ def buscar_productos_similares(query: str, top_k: int = 5):
                     "stock": prod.stock,
                     "categoria": prod.categoria.nombre,
                     "marca": prod.marca.nombre,
+                    "imagen_url": prod.imagen.url if prod.imagen else None,
                     "texto_completo": f"Producto: {prod.nombre} - {prod.descripcion or ''}",
                     "similitud": 0.85
                 })
@@ -101,6 +120,7 @@ def buscar_productos_similares(query: str, top_k: int = 5):
                 "stock": prod.stock,
                 "categoria": prod.categoria.nombre,
                 "marca": prod.marca.nombre,
+                "imagen_url": prod.imagen.url if prod.imagen else None,
                 "texto_completo": res.texto,
                 "similitud": similitud
             })

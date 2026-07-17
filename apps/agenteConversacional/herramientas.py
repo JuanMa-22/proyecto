@@ -324,7 +324,8 @@ def tool_obtener_stock_bajo(limite_maximo: int = None):
                     "stock_minimo": stock_min,
                     "categoria": prod.categoria.nombre,
                     "marca": prod.marca.nombre,
-                    "precio_bs": float(prod.precio_actual)
+                    "precio_bs": float(prod.precio_actual),
+                    "imagen_url": prod.imagen.url if prod.imagen else None
                 })
             cache.set(cache_key, resultado, timeout=60)
             return resultado
@@ -343,7 +344,8 @@ def tool_obtener_stock_bajo(limite_maximo: int = None):
                 "stock_minimo": stock_min,
                 "categoria": prod.categoria.nombre,
                 "marca": prod.marca.nombre,
-                "precio_bs": float(prod.precio_actual)
+                "precio_bs": float(prod.precio_actual),
+                "imagen_url": prod.imagen.url if prod.imagen else None
             })
             
         cache.set(cache_key, resultado, timeout=60)
@@ -449,7 +451,8 @@ def tool_contar_productos(marca: str = None, categoria: str = None, producto_nom
                     "stock": p.stock,
                     "precio_bs": float(p.precio_actual),
                     "categoria": p.categoria.nombre,
-                    "marca": p.marca.nombre
+                    "marca": p.marca.nombre,
+                    "imagen_url": p.imagen.url if p.imagen else None
                 })
                 
         resultado = {

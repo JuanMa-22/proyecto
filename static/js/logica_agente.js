@@ -202,6 +202,12 @@ function parsearMarkdown(texto) {
     // Reconstruir los tags de salto de línea
     html = html.replace(/\n/g, "<br>");
 
+    // 0. Parsear imágenes de markdown (![alt](url))
+    html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="max-width: 100%; max-height: 180px; border-radius: 8px; margin: 8px 0; display: block; box-shadow: 0 2px 5px rgba(0,0,0,0.15);">');
+
+    // 0.1. Parsear enlaces de markdown ([texto](url))
+    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" style="color: #ff5722; text-decoration: underline; font-weight: bold;">$1</a>');
+
     // 1. Detectar y estructurar tablas de markdown (| col 1 | col 2 |)
     const lineas = html.split('<br>');
     let procesandoTabla = false;
