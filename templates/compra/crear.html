@@ -80,7 +80,7 @@
                 </div>
             </div>
 
-            <div class="table-responsive" style="max-height: 200px; overflow: auto; margin-bottom: 20px;">
+            <div class="table-responsive" style="max-height: 340px; overflow-y: auto; overflow-x: auto; margin-bottom: 20px;">
                 <table class="table-details" id="tablaDetallesCompra">
                     <thead>
                         <tr>
@@ -175,7 +175,20 @@
                 placeholder: "Buscar producto...",
                 allowClear: true,
                 dropdownParent: $('#modalCrearCompra'),
-                matcher: matchCustomSelect2
+                matcher: matchCustomSelect2,
+                templateResult: function(data) {
+                    if (!data.id) {
+                        return data.text;
+                    }
+                    const exists = $('#tablaDetallesCompra tbody input[name="producto[]"]').filter(function() {
+                        return this.value == data.id;
+                    }).length > 0;
+
+                    if (exists) {
+                        return $('<span><i class="bx bx-check-circle icono-ya-agregado"></i><span class="producto-ya-agregado">' + data.text + '</span> <span class="badge-ya-agregado">Ya agregado</span></span>');
+                    }
+                    return data.text;
+                }
             });
 
             // Intercept provider creation form submission

@@ -1414,6 +1414,9 @@ header {
   overflow: auto; /* Habilita desplazamiento horizontal y vertical */
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.01);
   margin-bottom: 20px;
+  min-height: 160px;
+  flex-shrink: 0;
+  position: relative;
 }
 
 /* Estilización de scrollbar interno de la tabla */
@@ -1447,6 +1450,9 @@ header {
   letter-spacing: 0.5px;
   border-bottom: 1.5px solid var(--border-color);
   white-space: nowrap;
+  position: sticky;
+  top: 0;
+  z-index: 2;
 }
 
 .modal-content .table-details td {
@@ -1458,6 +1464,12 @@ header {
   transition: background-color 0.2s ease;
   vertical-align: middle;
   white-space: nowrap;
+}
+
+.modal-content .table-details th:first-child,
+.modal-content .table-details td:first-child {
+  white-space: normal;
+  min-width: 220px;
 }
 
 /* Efecto hover sobre las filas */
@@ -1596,4 +1608,43 @@ header {
 /* Asegurar que las alertas de SweetAlert siempre estén sobre los modales */
 .swal2-container {
   z-index: 99999 !important;
+}
+
+/* Estilos de Select2 para productos ya agregados */
+.producto-ya-agregado {
+  color: #94A3B8;
+  font-weight: 500;
+}
+
+.badge-ya-agregado {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: #10B981;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 6px;
+  font-weight: 600;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.icono-ya-agregado {
+  color: #10B981;
+  margin-right: 6px;
+  font-size: 14px;
+  vertical-align: middle;
+}
+
+/* Cuando la opción de Select2 está resaltada (hover/teclado), cambiar textos a blanco */
+.select2-results__option--highlighted .producto-ya-agregado {
+  color: #ffffff !important;
+}
+
+.select2-results__option--highlighted .badge-ya-agregado {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+  color: #ffffff !important;
+}
+
+.select2-results__option--highlighted .icono-ya-agregado {
+  color: #ffffff !important;
 }
