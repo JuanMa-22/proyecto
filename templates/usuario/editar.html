@@ -44,7 +44,7 @@
                 <label>Rol</label>
                 <select name="rol" required>
                     {% for r in roles %}
-                        <option value="{{ r.id_rol }}" {% if item.rol == r.id_rol %}selected{% endif %}>{{ r.nombre }}</option>
+                        <option value="{{ r.id_rol }}" {% if item.rol == r %}selected{% endif %}>{{ r.nombre }}</option>
                     {% endfor %}
                 </select>
             </div>

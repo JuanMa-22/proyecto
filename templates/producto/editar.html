@@ -27,7 +27,7 @@
                 <label>Categoría</label>
                 <select name="categoria" id="editarProductoCategoria{{ producto.id_producto }}" required>
                     {% for categoria in categorias %}
-                        <option value="{{ categoria.id_categoria }}" {% if producto.categoria == categoria.id_categoria %}selected{% endif %}>{{ categoria.nombre }}</option>
+                        <option value="{{ categoria.id_categoria }}" {% if producto.categoria == categoria %}selected{% endif %}>{{ categoria.nombre }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -35,7 +35,7 @@
                 <label>Marca</label>
                 <select name="marca" id="editarProductoMarca{{ producto.id_producto }}" required>
                     {% for marca in marcas %}
-                        <option value="{{ marca.id_marca }}" {% if producto.marca == marca.id_marca %}selected{% endif %}>{{ marca.nombre }}</option>
+                        <option value="{{ marca.id_marca }}" {% if producto.marca == marca %}selected{% endif %}>{{ marca.nombre }}</option>
                     {% endfor %}
                 </select>
             </div>
