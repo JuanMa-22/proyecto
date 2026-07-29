@@ -7,13 +7,14 @@ echo "=== Ejecutando Migraciones ==="
 python manage.py migrate --noinput
 
 if [ "$LOAD_DATA" = "True" ] || [ "$LOAD_DATA" = "true" ]; then
-  if [ -f "datos_sistema.json" ]; then
+  if [ -f "datos_nuevos.json" ]; then
+    echo "=== Cargando datos desde datos_nuevos.json ==="
+    python manage.py loaddata datos_nuevos.json --exclude contenttypes --exclude auth.Permission || echo "Advertencia: Algunos datos no pudieron ser cargados o ya existen."
+  elif [ -f "datos_sistema.json" ]; then
     echo "=== Cargando datos desde datos_sistema.json ==="
-    # Excluimos contenttypes y auth.Permission para prevenir colisiones en Django 5+
     python manage.py loaddata datos_sistema.json --exclude contenttypes --exclude auth.Permission || echo "Advertencia: Algunos datos no pudieron ser cargados o ya existen."
   elif [ -f "db.json" ]; then
     echo "=== Cargando datos desde db.json ==="
-    # Excluimos contenttypes y auth.Permission para prevenir colisiones en Django 5+
     python manage.py loaddata db.json --exclude contenttypes --exclude auth.Permission || echo "Advertencia: Algunos datos no pudieron ser cargados o ya existen."
   fi
 fi
